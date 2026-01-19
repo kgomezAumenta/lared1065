@@ -50,13 +50,13 @@ export default function Header() {
                 <div className="container mx-auto px-4">
                     <ul className="flex items-center gap-6 overflow-x-auto py-3 text-sm font-bold uppercase whitespace-nowrap scrollbar-hide">
                         <li><Link href="/" className="hover:text-red-200">Inicio</Link></li>
-                        <li><Link href="/category/noticias" className="hover:text-red-200">Noticias</Link></li>
-                        <li><Link href="/category/deportes" className="hover:text-red-200">Deportes</Link></li>
                         <li><Link href="/category/nacionales" className="hover:text-red-200">Nacionales</Link></li>
+                        <li><Link href="/category/futbol-nacional" className="hover:text-red-200">Futbol Nacional</Link></li>
+                        <li><Link href="/category/futbol-internacional" className="hover:text-red-200">Futbol Internacional</Link></li>
+                        <li><Link href="/category/deporte-nacional" className="hover:text-red-200">Deporte Nacional</Link></li>
+                        <li><Link href="/category/deporte-internacional" className="hover:text-red-200">Deporte Internacional</Link></li>
                         <li><Link href="/category/internacionales" className="hover:text-red-200">Internacionales</Link></li>
                         <li><Link href="/category/economia" className="hover:text-red-200">Economía</Link></li>
-                        <li><Link href="/programacion" className="hover:text-red-200">Programación</Link></li>
-                        <li><Link href="/contacto" className="hover:text-red-200">Contacto</Link></li>
                     </ul>
                 </div>
             </nav>
