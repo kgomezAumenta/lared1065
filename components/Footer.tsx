@@ -21,10 +21,12 @@ export default function Footer() {
                 <div>
                     <h3 className="text-white font-bold text-lg mb-4">Secciones</h3>
                     <ul className="space-y-2">
-                        <li><Link href="/category/noticias" className="hover:text-red-500 transition-colors">Noticias</Link></li>
-                        <li><Link href="/category/deportes" className="hover:text-red-500 transition-colors">Deportes</Link></li>
                         <li><Link href="/category/nacionales" className="hover:text-red-500 transition-colors">Nacionales</Link></li>
                         <li><Link href="/category/internacionales" className="hover:text-red-500 transition-colors">Internacionales</Link></li>
+                        <li><Link href="/category/noticias" className="hover:text-red-500 transition-colors">Noticias</Link></li>
+                        <li><Link href="/category/deportes" className="hover:text-red-500 transition-colors">Deportes</Link></li>
+                        <li><Link href="/programacion" className="hover:text-red-500 transition-colors">Programación</Link></li>
+                        <li><Link href="/contacto" className="hover:text-red-500 transition-colors">Contacto</Link></li>
                     </ul>
                 </div>
 
@@ -32,9 +34,9 @@ export default function Footer() {
                 <div>
                     <h3 className="text-white font-bold text-lg mb-4">Contacto</h3>
                     <ul className="space-y-2">
-                        <li>PBX: +502 2424-2424</li>
-                        <li>Email: contacto@lared.com.gt</li>
-                        <li>Dirección: Zona 10, Ciudad de Guatemala</li>
+                        <li>Tel: +502 1234 5678</li>
+                        <li>Email: info@lared1061.com</li>
+                        <li>Dirección: Guatemala, Guatemala</li>
                     </ul>
                 </div>
 

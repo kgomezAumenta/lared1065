@@ -34,10 +34,10 @@ interface PageInfo {
     startCursor: string | null;
 }
 
-async function getCategoryData(slug: string, after?: string) {
+async function getCategoryData(slug: string, after?: string, before?: string) {
     const query = `
-    query GetCategoryPosts($categoryName: String!, $categoryId: ID!, $first: Int!, $after: String) {
-      posts(first: $first, after: $after, where: { categoryName: $categoryName }) {
+    query GetCategoryPosts($categoryName: String!, $categoryId: ID!, $first: Int, $last: Int, $after: String, $before: String) {
+      posts(first: $first, last: $last, after: $after, before: $before, where: { categoryName: $categoryName }) {
         pageInfo {
           hasNextPage
           hasPreviousPage
@@ -91,28 +91,38 @@ async function getCategoryData(slug: string, after?: string) {
     }
   `;
 
-    console.log('[CATEGORY PAGE] Fetching data for slug:', slug);
+    console.log('[CATEGORY PAGE] Fetching data for slug:', slug, 'after:', after, 'before:', before);
 
     try {
+        const variables: any = {
+            categoryName: slug,
+            categoryId: slug,
+        };
+
+        if (before) {
+            variables.last = 15;
+            variables.before = before;
+        } else {
+            variables.first = 15;
+            variables.after = after || null;
+        }
+
         const res = await fetch("https://www.lared1061.com/graphql", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 query,
-                variables: {
-                    categoryName: slug,
-                    categoryId: slug,
-                    first: 15,
-                    after: after || null
-                }
+                variables
             }),
             next: { revalidate: 60 },
         });
 
         const json = await res.json();
-        console.log('[CATEGORY PAGE] Full GraphQL response:', JSON.stringify(json, null, 2));
-        console.log('[CATEGORY PAGE] Posts received:', json.data?.posts?.nodes?.length || 0);
-        console.log('[CATEGORY PAGE] Category info:', json.data?.category);
+
+        if (json.errors) {
+            console.error('[CATEGORY PAGE] GraphQL Errors:', json.errors);
+        }
+
         return {
             posts: json.data?.posts?.nodes || [],
             pageInfo: json.data?.posts?.pageInfo || null,
@@ -157,11 +167,11 @@ export default async function CategoryPage({
 }) {
     const { slug } = await params;
     const resolvedSearchParams = await searchParams;
+    const after = typeof resolvedSearchParams.after === 'string' ? resolvedSearchParams.after : undefined;
+    const before = typeof resolvedSearchParams.before === 'string' ? resolvedSearchParams.before : undefined;
     const page = Number(resolvedSearchParams.page) || 1;
 
-    // For now, we'll use simple page-based pagination
-    // In a full implementation, you'd use cursor-based pagination with endCursor
-    const { posts, pageInfo, categoryInfo, sidebarPosts, categories } = await getCategoryData(slug);
+    const { posts, pageInfo, categoryInfo, sidebarPosts, categories } = await getCategoryData(slug, after, before);
 
     const title = categoryInfo?.name || slug.replace("-", " ").toUpperCase();
 
@@ -224,24 +234,26 @@ export default async function CategoryPage({
                     </div>
 
                     {/* Pagination */}
-                    {posts.length >= 15 && (
+                    {(pageInfo?.hasNextPage || pageInfo?.hasPreviousPage) && (
                         <div className="flex justify-center mt-8">
-                            <div className="flex gap-2">
-                                {page > 1 && (
+                            <div className="flex gap-4">
+                                {pageInfo.hasPreviousPage && (
                                     <Link
-                                        href={`/category/${slug}?page=${page - 1}`}
-                                        className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                                        href={`/category/${slug}?before=${pageInfo.startCursor}&page=${Math.max(1, page - 1)}`}
+                                        className="px-6 py-2 border border-red-600 text-red-600 rounded font-bold hover:bg-red-600 hover:text-white transition-colors"
                                     >
                                         ← Anterior
                                     </Link>
                                 )}
-                                <span className="px-4 py-2 bg-red-600 text-white rounded font-bold">
-                                    {page}
+
+                                <span className="px-4 py-2 bg-gray-100 text-gray-600 rounded font-bold flex items-center">
+                                    Página {page}
                                 </span>
-                                {pageInfo?.hasNextPage && (
+
+                                {pageInfo.hasNextPage && (
                                     <Link
-                                        href={`/category/${slug}?page=${page + 1}`}
-                                        className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                                        href={`/category/${slug}?after=${pageInfo.endCursor}&page=${page + 1}`}
+                                        className="px-6 py-2 border border-red-600 text-red-600 rounded font-bold hover:bg-red-600 hover:text-white transition-colors"
                                     >
                                         Siguiente →
                                     </Link>

@@ -5,6 +5,7 @@ import { ApolloWrapper } from "@/components/ApolloWrapper";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import RadioPlayer from "@/components/Player/RadioPlayer";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,18 @@ export default function RootLayout({
             <RadioPlayer />
           </div>
         </ApolloWrapper>
+        <Script
+          src="https://platform.twitter.com/widgets.js"
+          strategy="lazyOnload"
+        />
+        <Script
+          src="https://www.instagram.com/embed.js"
+          strategy="lazyOnload"
+        />
+        <Script
+          src="https://www.lared1061.com/wp-includes/js/wp-embed.min.js"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

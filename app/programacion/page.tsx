@@ -54,13 +54,10 @@ export default function ProgramacionPage() {
     return (
         <main className="container mx-auto px-4 py-8 pb-32">
             {/* Header */}
-            <div className="mb-12 text-center">
-                <h1 className="text-4xl md:text-5xl font-extrabold uppercase text-gray-900 mb-4">
+            <div className="mb-8 border-b border-gray-200 pb-4">
+                <h1 className="text-3xl font-extrabold uppercase text-gray-900">
                     Programación
                 </h1>
-                <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                    Conoce nuestra programación semanal. Sintoniza La Red 106.1 y mantente informado y entretenido.
-                </p>
             </div>
 
             {/* Schedule Grid */}

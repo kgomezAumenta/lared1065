@@ -10,13 +10,10 @@ export default function ContactoPage() {
     return (
         <main className="container mx-auto px-4 py-8 pb-32">
             {/* Header */}
-            <div className="mb-12 text-center">
-                <h1 className="text-4xl md:text-5xl font-extrabold uppercase text-gray-900 mb-4">
+            <div className="mb-8 border-b border-gray-200 pb-4">
+                <h1 className="text-3xl font-extrabold uppercase text-gray-900">
                     Contáctanos
                 </h1>
-                <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                    Estamos aquí para escucharte. Envíanos tus comentarios, sugerencias o consultas.
-                </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
