@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Menu, X, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Search, Menu, X, Facebook, Twitter, Instagram, Youtube, TrendingUp } from "lucide-react";
+import { getExchangeRate } from "@/app/actions/banguat";
+import { useEffect } from "react";
 
 const NAV_LINKS = [
     { href: "/", label: "Inicio" },
@@ -20,7 +22,18 @@ const NAV_LINKS = [
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [exchangeRate, setExchangeRate] = useState<{ buy: number, sell: number } | null>(null);
     const router = typeof window !== 'undefined' ? (require('next/navigation').useRouter()) : null;
+
+    useEffect(() => {
+        async function fetchRate() {
+            const result = await getExchangeRate();
+            if (result.success && result.buyRate && result.sellRate) {
+                setExchangeRate({ buy: result.buyRate, sell: result.sellRate });
+            }
+        }
+        fetchRate();
+    }, []);
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -37,8 +50,20 @@ export default function Header() {
         <header className="w-full relative">
             {/* Top Bar with Socials and Date */}
             <div className="bg-white text-gray-600 text-xs py-1 border-b border-gray-100">
-                <div className="container mx-auto px-4 flex justify-between items-center">
-                    <span>{new Date().toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <div className="container mx-auto px-4 flex justify-between items-center whitespace-nowrap overflow-x-auto gap-4 py-1">
+                    <div className="flex items-center gap-4">
+                        <span className="shrink-0">{new Date().toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        {exchangeRate && (
+                            <div className="hidden lg:flex items-center gap-2 border-l border-gray-100 pl-4 text-[10px] md:text-xs">
+                                <TrendingUp size={12} className="text-green-600" />
+                                <span className="font-bold text-gray-400 uppercase tracking-tight">Tasa de Cambio Banguat -</span>
+                                <span className="flex gap-2">
+                                    <span className="text-gray-900 font-black">Compra: <span className="text-red-600">Q{exchangeRate.buy.toFixed(2)}</span></span>
+                                    <span className="text-gray-900 font-black">Venta: <span className="text-red-600">Q{exchangeRate.sell.toFixed(2)}</span></span>
+                                </span>
+                            </div>
+                        )}
+                    </div>
                     <div className="flex gap-4">
                         <a href="#" className="hover:text-red-600"><Facebook size={14} /></a>
                         <a href="#" className="hover:text-red-600"><Twitter size={14} /></a>
