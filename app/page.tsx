@@ -243,7 +243,7 @@ export default async function Home() {
                 <div className="flex justify-between items-center text-base mt-2 w-full">
                   <span className="text-black font-normal">Redacción</span>
                   <span className="text-[#9F9F9F] font-normal">
-                    {new Date(featuredPost.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    {new Date(featuredPost.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
               </div>
@@ -303,7 +303,7 @@ export default async function Home() {
                   <div className="flex justify-between items-center w-full mt-1">
                     <span className="text-black text-xs font-normal">Redacción</span>
                     <span className="text-[#9F9F9F] text-xs font-normal">
-                      {new Date(nacionalesPosts[0].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      {new Date(nacionalesPosts[0].date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
                 </div>
@@ -338,7 +338,7 @@ export default async function Home() {
                   <div className="flex justify-between items-center w-full mt-1">
                     <span className="text-black text-xs font-normal">Redacción</span>
                     <span className="text-[#9F9F9F] text-xs font-normal">
-                      {new Date(nacionalesPosts[1].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      {new Date(nacionalesPosts[1].date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
                 </div>
@@ -393,7 +393,7 @@ export default async function Home() {
                   <div className="flex justify-between items-center w-full mt-1">
                     <span className="text-black text-xs font-normal">Redacción</span>
                     <span className="text-[#9F9F9F] text-xs font-normal">
-                      {new Date(internacionalesPosts[0].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      {new Date(internacionalesPosts[0].date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
                 </div>
@@ -433,7 +433,7 @@ export default async function Home() {
                   <div className="flex justify-between items-center w-full mt-1">
                     <span className="text-black text-xs font-normal">Redacción</span>
                     <span className="text-[#9F9F9F] text-xs font-normal">
-                      {new Date(internacionalesPosts[1].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      {new Date(internacionalesPosts[1].date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
                 </div>
@@ -498,7 +498,7 @@ export default async function Home() {
                   <div className="flex justify-between items-center w-full mt-1">
                     <span className="text-black text-sm font-normal">Redacción</span>
                     <span className="text-[#9F9F9F] text-sm font-normal">
-                      {new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
                 </div>
@@ -545,7 +545,7 @@ export default async function Home() {
                   </Link>
                   <div className="flex justify-between items-center text-xs text-gray-500">
                     <span>Redacción</span>
-                    <span>{new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span>{new Date(post.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
                 </div>
               ))}
