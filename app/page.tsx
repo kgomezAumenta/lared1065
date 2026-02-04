@@ -229,13 +229,11 @@ export default async function Home() {
   const validAcfItems = mappedAcfItems.filter((item: any) => item.date ? isWithinLast3Hours(item.date) : false);
   const validFallbackPosts = mappedFallbackPosts.filter((item: any) => isWithinLast3Hours(item.date));
 
-  // Decision Logic: Use ACF if available, else Fallback.
-  // User said: "sino en ACF no hay nada mostrar las ultimas noticias" (implied also filtered or just latest?)
-  // "mostrar las ultimas noticias desde los posts" usually implies latest.
-  // But contextually "Ahora" implies recent. 
-  // I will use validFallbackPosts (filtered). If validFallbackPosts is empty, maybe fallback to unfiltered latest?
-  // User said "solo debgemos mostrar las ultimas 3 horas". So strict filtering seems required.
-  const finalBreakingNews = validAcfItems.length > 0 ? validAcfItems : validFallbackPosts;
+  // Decision Logic: Use ACF (if valid), else Fallback (if valid), else Unfiltered Fallback
+  // "sino en ACF no hay nada mostrar las ultimas noticias": If no recent news, just show latest.
+  const finalBreakingNews = validAcfItems.length > 0
+    ? validAcfItems
+    : (validFallbackPosts.length > 0 ? validFallbackPosts : mappedFallbackPosts.slice(0, 5));
 
   return (
     <main className="container mx-auto px-4 py-6 pb-32">
