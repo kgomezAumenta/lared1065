@@ -47,6 +47,17 @@ const stripHtml = (html: string) => {
 async function getData() {
   const query = `
     query GetHomeData {
+      stickyPost: posts(first: 1, where: { tag: "Portada" }) {
+        nodes {
+          id
+          title
+          slug
+          date
+          excerpt
+          categories { nodes { name slug } }
+          featuredImage { node { sourceUrl altText } }
+        }
+      }
       latestPosts: posts(first: 10) {
         nodes {
           id
@@ -72,7 +83,7 @@ async function getData() {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       economia: posts(first: 6, where: { categoryName: "economia" }) {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
-      ahoraPosts: posts(first: 5, where: { categoryName: "nacionales" }) {
+      ahoraPosts: posts(first: 10) {
         nodes { id title slug date excerpt categories { nodes { name slug } } }
       }
       dynamicCategory: category(id: "internacionales", idType: SLUG) {
@@ -111,6 +122,7 @@ async function getData() {
     const data = json.data;
 
     return {
+      stickyHero: data?.stickyPost?.nodes[0] || null,
       latestPosts: data?.latestPosts?.nodes || [],
       nacionalesPosts: data?.nacionales?.nodes || [],
       futbolNacionalPosts: data?.futbolNacional?.nodes || [],
@@ -135,6 +147,7 @@ async function getData() {
   } catch (error) {
     console.error("Error fetching home data:", error);
     return {
+      stickyHero: null,
       latestPosts: [],
       nacionalesPosts: [],
       futbolNacionalPosts: [],
@@ -153,6 +166,7 @@ async function getData() {
 
 export default async function Home() {
   const {
+    stickyHero,
     latestPosts,
     nacionalesPosts,
     futbolNacionalPosts,
@@ -167,19 +181,33 @@ export default async function Home() {
     categorySnapshots
   } = await getData();
 
-  const featuredPost = latestPosts[0];
-  // Sub-featured posts for "Lo Más Reciente" sidebar list
-  const subFeaturedPosts = latestPosts.slice(1, 6);
+  // 1. Determine Featured/Hero Post
+  // If a post with tag "Portada" exists, use it. Otherwise, use latest.
+  const featuredPost = stickyHero || latestPosts[0];
 
-  // Map ACF Items to BreakingNews format
-  const customBreakingNews = acfBreakingNews.map((item: BreakingAcfItem, index: number) => {
+  // 2. Sidebar List (Lo Más Reciente)
+  // If featured is sticky, use full latest. If default, skip first.
+  const subFeaturedPosts = stickyHero
+    ? latestPosts.filter((p: Post) => p.id !== stickyHero.id).slice(0, 5)
+    : latestPosts.slice(1, 6);
+
+  // 3. AHORA Logic
+  const isWithinLast3Hours = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    // Use client-side timezone offset if needed, but server-side UTC comparison is safer if dates are ISO.
+    // WordPress GQL dates are usually UTC or offset included.
+    const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000); // 3 hours in ms
+    return date >= threeHoursAgo && date <= now;
+  };
+
+  const mappedAcfItems = acfBreakingNews.map((item: BreakingAcfItem, index: number) => {
     let linkUrl = null;
     if (item.newsUrl && typeof item.newsUrl === 'object' && 'url' in item.newsUrl) {
       linkUrl = item.newsUrl.url;
     } else if (typeof item.newsUrl === 'string') {
       linkUrl = item.newsUrl;
     }
-
     return {
       id: `acf-${index}`,
       title: item.newsTitle,
@@ -188,6 +216,26 @@ export default async function Home() {
       type: 'custom' as const
     };
   });
+
+  const mappedFallbackPosts = ahoraPosts.map((post: Post) => ({
+    id: post.id,
+    title: post.title,
+    date: post.date,
+    link: `/posts/${post.slug}`,
+    type: 'post' as const
+  }));
+
+  // Filter items by 3 hours
+  const validAcfItems = mappedAcfItems.filter((item: any) => item.date ? isWithinLast3Hours(item.date) : false);
+  const validFallbackPosts = mappedFallbackPosts.filter((item: any) => isWithinLast3Hours(item.date));
+
+  // Decision Logic: Use ACF if available, else Fallback.
+  // User said: "sino en ACF no hay nada mostrar las ultimas noticias" (implied also filtered or just latest?)
+  // "mostrar las ultimas noticias desde los posts" usually implies latest.
+  // But contextually "Ahora" implies recent. 
+  // I will use validFallbackPosts (filtered). If validFallbackPosts is empty, maybe fallback to unfiltered latest?
+  // User said "solo debgemos mostrar las ultimas 3 horas". So strict filtering seems required.
+  const finalBreakingNews = validAcfItems.length > 0 ? validAcfItems : validFallbackPosts;
 
   return (
     <main className="container mx-auto px-4 py-6 pb-32">
@@ -565,7 +613,7 @@ export default async function Home() {
             </div>
 
             {/* Ahora Items List */}
-            {customBreakingNews.length > 0 ? customBreakingNews.slice(0, 5).map((item: any, i: number) => (
+            {finalBreakingNews.length > 0 ? finalBreakingNews.slice(0, 5).map((item: any, i: number) => (
               <div key={i} className="flex gap-4 items-start border-b border-gray-200 pb-4 last:border-0 last:pb-0">
                 {/* Circle Icon */}
                 <div className="shrink-0 mt-1">
@@ -587,7 +635,7 @@ export default async function Home() {
                 </div>
               </div>
             )) : (
-              <p className="text-gray-500 text-sm">Cargando noticias...</p>
+              <p className="text-gray-500 text-sm">No hay noticias urgentes.</p>
             )}
           </div>
 
