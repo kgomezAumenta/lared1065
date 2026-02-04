@@ -565,7 +565,7 @@ export default async function Home() {
             </div>
 
             {/* Ahora Items List */}
-            {customBreakingNews.length > 0 ? customBreakingNews.slice(0, 5).map((item, i) => (
+            {customBreakingNews.length > 0 ? customBreakingNews.slice(0, 5).map((item: any, i: number) => (
               <div key={i} className="flex gap-4 items-start border-b border-gray-200 pb-4 last:border-0 last:pb-0">
                 {/* Circle Icon */}
                 <div className="shrink-0 mt-1">
