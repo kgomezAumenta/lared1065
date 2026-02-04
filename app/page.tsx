@@ -598,7 +598,7 @@ export default async function Home() {
             </div>
 
             <div className="flex flex-col gap-0 border border-[#DCDCDC] rounded-[15px] overflow-hidden">
-              {subFeaturedPosts.map((post, i) => (
+              {subFeaturedPosts.map((post: Post, i: number) => (
                 <div key={post.id} className="p-5 border-b border-[#DCDCDC] last:border-0 flex gap-6 items-center hover:bg-gray-50 transition-colors">
                   <span className="text-[#9F9F9F] text-xl font-bold">0{i + 1}</span>
                   <div className="flex flex-col gap-1">
