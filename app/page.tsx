@@ -1,13 +1,18 @@
+export const dynamic = 'force-dynamic'; // Force dynamic rendering to fix caching issues
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Bookmark, Clock, Search, Menu } from "lucide-react";
 import TopicRow from "@/components/TopicRow";
+import BreakingNews from "@/components/BreakingNews";
+import AdvertisingBanner from "@/components/AdvertisingBanner";
 
 interface Post {
   id: string;
   title: string;
   slug: string;
   date: string;
+  excerpt: string;
   categories: {
     nodes: {
       name: string;
@@ -22,6 +27,23 @@ interface Post {
   };
 }
 
+interface BreakingAcfItem {
+  newsTitle: string;
+  newsUrl?: {
+    url: string;
+    title?: string;
+    target?: string;
+  } | string | null;
+  newsTimestamp?: string;
+}
+
+// Helper to strip HTML tags from excerpts
+const stripHtml = (html: string) => {
+  if (!html) return "";
+  return html.replace(/<[^>]+>/g, "");
+};
+
+// Data fetching function
 async function getData() {
   const query = `
     query GetHomeData {
@@ -31,29 +53,43 @@ async function getData() {
           title
           slug
           date
+          excerpt
           categories { nodes { name slug } }
           featuredImage { node { sourceUrl altText } }
         }
       }
       nacionales: posts(first: 8, where: { categoryName: "nacionales" }) {
-        nodes { id title slug date categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
+        nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       futbolNacional: posts(first: 8, where: { categoryName: "futbol-nacional" }) {
-        nodes { id title slug date categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
-      futbolInternacional: posts(first: 1, where: { categoryName: "futbol-internacional" }) {
-        nodes { id title slug date categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
+        nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
+      futbolInternacional: posts(first: 4, where: { categoryName: "futbol-internacional" }) {
+        nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       deporteNacional: posts(first: 6, where: { categoryName: "deporte-nacional" }) {
-        nodes { id title slug date categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
+        nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       deporteInternacional: posts(first: 6, where: { categoryName: "deporte-internacional" }) {
-        nodes { id title slug date categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
+        nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       internacionales: posts(first: 6, where: { categoryName: "internacionales" }) {
-        nodes { id title slug date categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
+        nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       economia: posts(first: 6, where: { categoryName: "economia" }) {
-        nodes { id title slug date categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
-      ahoraPosts: posts(first: 10, where: { categoryName: "nacionales" }) {
-        nodes { id title slug date categories { nodes { name slug } } }
+        nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
+      ahoraPosts: posts(first: 5, where: { categoryName: "nacionales" }) {
+        nodes { id title slug date excerpt categories { nodes { name slug } } }
       }
       dynamicCategory: category(id: "internacionales", idType: SLUG) {
         name
+      }
+      # Fetch ACF Fields from the 'Ahora' Page using Database ID 649987
+      ahoraPage: page(id: "649987", idType: DATABASE_ID) {
+        newsList { 
+           # Nested 'repetidor' field as discovered in inspection
+           repetidor {
+             newsTitle
+             newsUrl {
+               url
+             }
+             newsTimestamp 
+           }
+        }
       }
     }
   `;
@@ -63,21 +99,28 @@ async function getData() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
-      next: { revalidate: 60 },
+      next: { revalidate: 0 }, // Disable cache
     });
 
     const json = await res.json();
+
+    if (json.errors) {
+      console.error("GraphQL Errors in Home Query:", JSON.stringify(json.errors, null, 2));
+    }
+
     const data = json.data;
 
     return {
       latestPosts: data?.latestPosts?.nodes || [],
       nacionalesPosts: data?.nacionales?.nodes || [],
       futbolNacionalPosts: data?.futbolNacional?.nodes || [],
+      futbolInternacionalPosts: data?.futbolInternacional?.nodes || [],
       internacionalesPosts: data?.internacionales?.nodes || [],
       deporteIntPosts: data?.deporteInternacional?.nodes || [],
       deporteNacPosts: data?.deporteNacional?.nodes || [],
       economiaPosts: data?.economia?.nodes || [],
       ahoraPosts: data?.ahoraPosts?.nodes || [],
+      acfBreakingNews: data?.ahoraPage?.newsList?.repetidor || [],
       dynamicCategoryName: data?.dynamicCategory?.name || "Internacionales",
       categorySnapshots: [
         data?.nacionales?.nodes[0],
@@ -95,11 +138,13 @@ async function getData() {
       latestPosts: [],
       nacionalesPosts: [],
       futbolNacionalPosts: [],
+      futbolInternacionalPosts: [],
       internacionalesPosts: [],
       deporteIntPosts: [],
       deporteNacPosts: [],
       economiaPosts: [],
-      ahoraPosts: [],
+      ahoraPosts: [], // Fallback
+      acfBreakingNews: [],
       dynamicCategoryName: "Noticias",
       categorySnapshots: [],
     };
@@ -111,314 +156,478 @@ export default async function Home() {
     latestPosts,
     nacionalesPosts,
     futbolNacionalPosts,
+    futbolInternacionalPosts,
     internacionalesPosts,
     deporteIntPosts,
     deporteNacPosts,
     economiaPosts,
     ahoraPosts,
+    acfBreakingNews,
     dynamicCategoryName,
     categorySnapshots
   } = await getData();
 
   const featuredPost = latestPosts[0];
-  const subFeaturedPosts = latestPosts.slice(1, 5);
-  const now = new Date("2026-01-19T15:31:34-06:00");
-  const displayAhoraPosts = ahoraPosts.slice(0, 5);
+  // Sub-featured posts for "Lo Más Reciente" sidebar list
+  const subFeaturedPosts = latestPosts.slice(1, 6);
+
+  // Map ACF Items to BreakingNews format
+  const customBreakingNews = acfBreakingNews.map((item: BreakingAcfItem, index: number) => {
+    let linkUrl = null;
+    if (item.newsUrl && typeof item.newsUrl === 'object' && 'url' in item.newsUrl) {
+      linkUrl = item.newsUrl.url;
+    } else if (typeof item.newsUrl === 'string') {
+      linkUrl = item.newsUrl;
+    }
+
+    return {
+      id: `acf-${index}`,
+      title: item.newsTitle,
+      date: item.newsTimestamp || new Date().toISOString(),
+      link: linkUrl,
+      type: 'custom' as const
+    };
+  });
 
   return (
     <main className="container mx-auto px-4 py-6 pb-32">
-      {/* New Hero Section (3 columns) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
-        {/* Column 1: Main Feed (6/12) */}
-        <div className="lg:col-span-6 space-y-8">
+      {/* Top Advertisement "Anuncio 1" */}
+      <div className="mb-8 flex justify-center">
+        <AdvertisingBanner />
+      </div>
+
+      {/* Hero Section (Single Featured Post) */}
+      <div className="bg-[#FAFAFA] flex justify-center py-8 mb-8">
+        <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center max-w-[1630px] mx-auto w-full">
           {featuredPost && (
-            <div className="group">
-              <Link href={`/posts/${featuredPost.slug}`}>
-                <div className="relative aspect-video w-full overflow-hidden rounded-sm mb-4">
+            <>
+              {/* Left Column: Image (Narrower: 700px) */}
+              <div className="relative w-full md:w-[700px] aspect-[16/9] shrink-0">
+                <Link href={`/posts/${featuredPost.slug}`} className="block w-full h-full relative overflow-hidden rounded-[20px]">
                   {featuredPost.featuredImage?.node?.sourceUrl ? (
                     <Image
                       src={featuredPost.featuredImage.node.sourceUrl}
                       alt={featuredPost.featuredImage.node.altText || featuredPost.title}
                       fill
                       priority
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="object-cover hover:scale-105 transition-transform duration-700"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-100" />
+                    <div className="w-full h-full bg-gray-200" />
                   )}
-                </div>
-                <h1 className="text-4xl font-extrabold text-gray-900 leading-[1.1] group-hover:text-red-600 transition-colors mb-4 line-clamp-2">
-                  {featuredPost.title}
-                </h1>
-                <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
-                  La Red 106.1 - Lo último en noticias nacionales e internacionales, deportes y más.
-                </p>
-              </Link>
-            </div>
-          )}
-
-          <div className="space-y-6 pt-6 border-t border-gray-100">
-            {subFeaturedPosts.map((post: Post) => (
-              <Link key={post.id} href={`/posts/${post.slug}`} className="group flex gap-4">
-                <div className="relative w-32 h-24 shrink-0 overflow-hidden rounded-sm bg-gray-100">
-                  {post.featuredImage?.node?.sourceUrl && (
-                    <Image
-                      src={post.featuredImage.node.sourceUrl}
-                      alt={post.featuredImage.node.altText || post.title}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                  )}
-                </div>
-                <div className="flex flex-col flex-1">
-                  <span className="text-red-600 text-[10px] font-bold uppercase mb-1">
-                    {post.categories?.nodes[0]?.name}
-                  </span>
-                  <h3 className="font-bold text-lg leading-tight group-hover:text-red-600 transition-colors overflow-hidden">
-                    {post.title}
-                  </h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Column 2: Categories Snapshots (3/12) */}
-        <div className="lg:col-span-3 space-y-8 border-l border-r border-gray-50 px-4">
-          <div className="space-y-8">
-            {categorySnapshots.map((post: Post) => (
-              <div key={post.id} className="pb-6 border-b border-gray-100 last:border-0">
-                <span className="text-blue-500 text-[10px] font-bold uppercase mb-2 block tracking-wider">
-                  {post.categories?.nodes[0]?.name}
-                </span>
-                <Link href={`/posts/${post.slug}`} className="group">
-                  <h3 className="text-lg font-bold leading-tight group-hover:text-blue-600 transition-colors">
-                    {post.title}
-                  </h3>
                 </Link>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Column 3: "Ahora" Timeline (3/12) */}
-        <div className="lg:col-span-3">
-          <div className="bg-gray-50 p-4 rounded-sm">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
-              <h2 className="font-black text-xl italic uppercase tracking-tighter">Ahora</h2>
-              <span className="ml-auto text-[10px] font-bold text-gray-400">
-                {now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', hour12: false })}
-              </span>
-            </div>
+              {/* Right Column: Content (Wider: flex-1) */}
+              <div className="flex flex-col gap-4 w-full flex-1">
+                {/* Category Pill */}
+                <div className="self-start">
+                  <span className="bg-[#E40000] text-white text-xs font-bold uppercase px-4 py-1.5 rounded-[10px]">
+                    {featuredPost.categories?.nodes[0]?.name || "NACIONALES"}
+                  </span>
+                </div>
 
-            <div className="space-y-6 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1px] before:bg-gray-200">
-              {displayAhoraPosts.map((post: Post) => {
-                const postTime = new Date(post.date).toLocaleTimeString('es-GT', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: false
-                });
-                return (
-                  <div key={post.id} className="relative pl-6">
-                    <div className="absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full bg-white border-2 border-red-600 z-10" />
-                    <span className="text-[10px] font-bold text-red-600 mb-1 block">{postTime}</span>
-                    <Link href={`/posts/${post.slug}`} className="group">
-                      <h4 className="text-sm font-bold leading-snug group-hover:text-red-700 transition-colors">
-                        {post.title}
-                      </h4>
-                    </Link>
-                    <Link
-                      href={`/posts/${post.slug}`}
-                      className="text-[10px] font-bold text-gray-500 flex items-center gap-1 mt-2 hover:text-red-600 uppercase"
-                    >
-                      Ver más <ArrowRight size={10} />
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                {/* Title (Reduced from 4xl to 3xl) */}
+                <Link href={`/posts/${featuredPost.slug}`} className="group">
+                  <h1 className="text-2xl md:text-3xl font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                    {featuredPost.title}
+                  </h1>
+                </Link>
+
+                {/* Excerpt (Reduced from xl to lg) */}
+                <div className="text-[#717171] text-base md:text-lg font-normal leading-snug line-clamp-3">
+                  {stripHtml(featuredPost.excerpt) || "Lorem ipsum dolor sit amet, consectetuer adipiscing elit..."}
+                </div>
+
+                {/* Meta (Reduced from lg to base) */}
+                <div className="flex justify-between items-center text-base mt-2 w-full">
+                  <span className="text-black font-normal">Redacción</span>
+                  <span className="text-[#9F9F9F] font-normal">
+                    {new Date(featuredPost.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Restore Original Sections */}
+      {/* Main Content + Sidebar Layout */}
+      {/* Updated: Main Content takes flex-1 (fills space), Sidebar fixed to 400px (narrower) */}
+      <div className="flex flex-col xl:flex-row gap-12 justify-center items-start max-w-[1630px] mx-auto w-full">
 
-      {/* "LO MÁS RECIENTE DE LA RED" Strip */}
-      <section className="mb-12">
-        <div className="bg-red-600 text-white text-center py-2 font-bold uppercase text-lg mb-6">
-          LO MÁS RECIENTE DE LA RED
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {latestPosts.slice(5, 9).map((post: Post) => (
-            <Link key={post.id} href={`/posts/${post.slug}`} className="group flex gap-4">
-              <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-md bg-gray-200">
-                {post.featuredImage?.node?.sourceUrl && (
-                  <Image
-                    src={post.featuredImage.node.sourceUrl}
-                    alt={post.featuredImage.node.altText || post.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold uppercase text-gray-500 mb-1">
-                  {post.categories?.nodes[0]?.name || "Noticias"}
-                </span>
-                <h3 className="font-bold text-sm leading-tight group-hover:text-red-600 transition-colors line-clamp-3">
-                  {post.title}
-                </h3>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+        {/* LEFT COLUMN (Main Content) - Flexible width */}
+        <div className="flex flex-col gap-12 w-full xl:flex-1">
 
-      {/* Nacionales Section */}
-      <section className="mb-12 bg-gray-50 p-6 rounded-lg -mx-6 md:mx-0">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 group cursor-pointer">
-            <h2 className="text-3xl font-extrabold text-red-600 uppercase">NACIONALES</h2>
-            <ArrowRight className="text-red-600 group-hover:translate-x-1 transition-transform" />
-          </div>
-          <Link href="/category/nacionales" className="hidden md:inline-block border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
-            VER TODAS
-          </Link>
+          {/* Nacionales Section */}
+          <section className="flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-black uppercase">Nacionales</h2>
+                <Link href="/category/nacionales" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+                  Ver Más
+                </Link>
+              </div>
+              <div className="h-[2px] bg-black w-full" />
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Post 1 */}
+              {nacionalesPosts[0] && (
+                <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
+                  <div className="relative h-[200px] w-full rounded-[10px] overflow-hidden">
+                    {nacionalesPosts[0].featuredImage?.node?.sourceUrl && (
+                      <Image
+                        src={nacionalesPosts[0].featuredImage.node.sourceUrl}
+                        alt={nacionalesPosts[0].title}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="self-start">
+                    <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
+                      NACIONALES
+                    </span>
+                  </div>
+                  <Link href={`/posts/${nacionalesPosts[0].slug}`} className="group">
+                    {/* Title Reduced from xl to lg */}
+                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                      {nacionalesPosts[0].title}
+                    </h3>
+                  </Link>
+                  {/* Excerpt Reduced from base to sm */}
+                  <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
+                    {stripHtml(nacionalesPosts[0].excerpt) || "Lorem ipsum dolor sit amet..."}
+                  </p>
+                  <div className="flex justify-between items-center w-full mt-1">
+                    <span className="text-black text-xs font-normal">Redacción</span>
+                    <span className="text-[#9F9F9F] text-xs font-normal">
+                      {new Date(nacionalesPosts[0].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Post 2 */}
+              {nacionalesPosts[1] && (
+                <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
+                  <div className="relative h-[200px] w-full rounded-[10px] overflow-hidden">
+                    {nacionalesPosts[1].featuredImage?.node?.sourceUrl && (
+                      <Image
+                        src={nacionalesPosts[1].featuredImage.node.sourceUrl}
+                        alt={nacionalesPosts[1].title}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="self-start">
+                    <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
+                      NACIONALES
+                    </span>
+                  </div>
+                  <Link href={`/posts/${nacionalesPosts[1].slug}`} className="group">
+                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                      {nacionalesPosts[1].title}
+                    </h3>
+                  </Link>
+                  <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
+                    {stripHtml(nacionalesPosts[1].excerpt) || "Lorem ipsum dolor sit amet..."}
+                  </p>
+                  <div className="flex justify-between items-center w-full mt-1">
+                    <span className="text-black text-xs font-normal">Redacción</span>
+                    <span className="text-[#9F9F9F] text-xs font-normal">
+                      {new Date(nacionalesPosts[1].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Ad Slot (3rd Column in this row) */}
+              <div className="flex-1 min-w-[280px]">
+                <AdvertisingBanner className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]" />
+              </div>
+            </div>
+          </section>
+
+          {/* Internacionales Section */}
+          <section className="flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-black uppercase">Internacional</h2>
+                <Link href="/category/internacionales" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+                  Ver Más
+                </Link>
+              </div>
+              <div className="h-[2px] bg-black w-full" />
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Post 1 */}
+              {internacionalesPosts[0] && (
+                <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
+                  <div className="relative h-[200px] w-full rounded-[10px] overflow-hidden">
+                    {internacionalesPosts[0].featuredImage?.node?.sourceUrl && (
+                      <Image
+                        src={internacionalesPosts[0].featuredImage.node.sourceUrl}
+                        alt={internacionalesPosts[0].title}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="self-start">
+                    <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
+                      INTERNACIONAL
+                    </span>
+                  </div>
+                  <Link href={`/posts/${internacionalesPosts[0].slug}`} className="group">
+                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                      {internacionalesPosts[0].title}
+                    </h3>
+                  </Link>
+                  <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
+                    {stripHtml(internacionalesPosts[0].excerpt) || "Lorem ipsum dolor sit amet..."}
+                  </p>
+                  <div className="flex justify-between items-center w-full mt-1">
+                    <span className="text-black text-xs font-normal">Redacción</span>
+                    <span className="text-[#9F9F9F] text-xs font-normal">
+                      {new Date(internacionalesPosts[0].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Ad Banner Middle */}
+              <div className="flex-1 min-w-[280px]">
+                <AdvertisingBanner className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]" />
+              </div>
+
+              {/* Post 2 */}
+              {internacionalesPosts[1] && (
+                <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
+                  <div className="relative h-[200px] w-full rounded-[10px] overflow-hidden">
+                    {internacionalesPosts[1].featuredImage?.node?.sourceUrl && (
+                      <Image
+                        src={internacionalesPosts[1].featuredImage.node.sourceUrl}
+                        alt={internacionalesPosts[1].title}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="self-start">
+                    <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
+                      INTERNACIONAL
+                    </span>
+                  </div>
+                  <Link href={`/posts/${internacionalesPosts[1].slug}`} className="group">
+                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                      {internacionalesPosts[1].title}
+                    </h3>
+                  </Link>
+                  <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
+                    {stripHtml(internacionalesPosts[1].excerpt) || "Lorem ipsum dolor sit amet..."}
+                  </p>
+                  <div className="flex justify-between items-center w-full mt-1">
+                    <span className="text-black text-xs font-normal">Redacción</span>
+                    <span className="text-[#9F9F9F] text-xs font-normal">
+                      {new Date(internacionalesPosts[1].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Hablando con los Cracks (Iframe) */}
+          <section className="">
+            {/* Reduced from 3xl to 2xl */}
+            <h2 className="text-2xl font-extrabold text-[#E40000] uppercase mb-6">HABLANDO CON LOS CRACKS</h2>
+            <div className="w-full">
+              <iframe
+                src="https://omny.fm/shows/cracks/playlists/podcast/embed?style=cover"
+                allow="autoplay; clipboard-write"
+                width="100%"
+                height="482"
+                frameBorder="0"
+                title="Hablando con los Cracks"
+                className="w-full rounded-[16px] shadow-md border border-white"
+              ></iframe>
+            </div>
+          </section>
+
+          {/* Fútbol Nacional Section */}
+          <section className="">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col gap-4 w-full">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-bold text-black uppercase">FÚTBOL NACIONAL</h2>
+                  <Link href="/category/futbol-nacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+                    Ver Más
+                  </Link>
+                </div>
+                <div className="h-[2px] bg-black w-full" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {futbolNacionalPosts.slice(0, 2).map((post: Post) => (
+                <div key={post.id} className="flex flex-col gap-3">
+                  <div className="relative h-[300px] w-full rounded-[20px] overflow-hidden">
+                    {post.featuredImage?.node?.sourceUrl && (
+                      <Image
+                        src={post.featuredImage.node.sourceUrl}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                    {/* Floating Pill inside image */}
+                    <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                      FUTBOL NACIONAL
+                    </div>
+                  </div>
+
+                  <Link href={`/posts/${post.slug}`} className="group">
+                    <h3 className="text-xl font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                      {post.title}
+                    </h3>
+                  </Link>
+
+                  <div className="flex justify-between items-center w-full mt-1">
+                    <span className="text-black text-sm font-normal">Redacción</span>
+                    <span className="text-[#9F9F9F] text-sm font-normal">
+                      {new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Fútbol Internacional Section */}
+          <section className="">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col gap-4 w-full">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-bold text-black uppercase">FÚTBOL INTERNACIONAL</h2>
+                  <Link href="/category/futbol-internacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+                    Ver Más
+                  </Link>
+                </div>
+                <div className="h-[2px] bg-black w-full" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* 3 Columns for Futbol Internacional */}
+              {futbolInternacionalPosts.slice(0, 3).map((post: Post) => (
+                <div key={post.id} className="flex flex-col gap-3">
+                  <div className="relative h-[270px] w-full rounded-[20px] overflow-hidden">
+                    {post.featuredImage?.node?.sourceUrl ? (
+                      <Image
+                        src={post.featuredImage.node.sourceUrl}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200" />
+                    )}
+                    <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                      FUTBOL INTERNACIONAL
+                    </div>
+                  </div>
+                  <Link href={`/posts/${post.slug}`} className="group">
+                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                      {post.title}
+                    </h3>
+                  </Link>
+                  <div className="flex justify-between items-center text-xs text-gray-500">
+                    <span>Redacción</span>
+                    <span>{new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {nacionalesPosts.map((post: Post) => (
-            <Link key={post.id} href={`/posts/${post.slug}`} className="group relative block">
-              <div className="relative h-64 w-full overflow-hidden rounded-lg mb-3">
-                {post.featuredImage?.node?.sourceUrl ? (
-                  <Image
-                    src={post.featuredImage.node.sourceUrl}
-                    alt={post.featuredImage.node.altText || post.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200"></div>
-                )}
-                <div className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors z-10">
-                  <Bookmark size={16} />
+
+        {/* RIGHT COLUMN (Sidebar) - Width 400px (Narrower) */}
+        <div className="flex flex-col gap-8 w-full xl:w-[400px] shrink-0">
+
+          {/* AHORA Section */}
+          <div className="bg-[#F7F7F7] rounded-[20px] p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-5 h-5 bg-[#E40000] rounded-full shrink-0" />
+              <h3 className="text-xl font-bold text-black">AHORA</h3>
+            </div>
+
+            {/* Ahora Items List */}
+            {customBreakingNews.length > 0 ? customBreakingNews.slice(0, 5).map((item, i) => (
+              <div key={i} className="flex gap-4 items-start border-b border-gray-200 pb-4 last:border-0 last:pb-0">
+                {/* Circle Icon */}
+                <div className="shrink-0 mt-1">
+                  <div className="w-5 h-5 rounded-full border-[3px] border-[#E40000] bg-white" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[#E40000] text-base font-bold">
+                    {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  {/* Title reduced to lg */}
+                  <h4 className="text-lg font-bold text-black leading-tight">
+                    {item.title}
+                  </h4>
+                  {item.link ? (
+                    <Link href={item.link} className="text-black text-sm hover:underline mt-1">Ver más</Link>
+                  ) : (
+                    <span className="text-black text-sm mt-1 cursor-default">Ver más</span>
+                  )}
                 </div>
               </div>
-              <span className="text-red-600 text-xs font-bold uppercase block mb-1">
-                {post.categories?.nodes[0]?.name || "Nacionales"}
-              </span>
-              <h3 className="font-bold text-lg leading-tight group-hover:text-red-600 transition-colors line-clamp-2">
-                {post.title}
-              </h3>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* La Red De Entrevistas (Iframe) */}
-      <section className="mb-12">
-        <h2 className="text-3xl font-extrabold text-red-600 uppercase mb-6">LA RED DE ENTREVISTAS</h2>
-        <div className="w-full">
-          <iframe
-            src="https://omny.fm/shows/la-red-de-entrevistas/playlists/podcast/embed?style=cover"
-            allow="autoplay; clipboard-write"
-            width="100%"
-            height="590"
-            frameBorder="0"
-            title="La Red De Entrevistas"
-            className="w-full rounded-lg shadow-md"
-          ></iframe>
-        </div>
-      </section>
-
-      {/* Fútbol Nacional Section */}
-      <section className="mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 group cursor-pointer">
-            <h2 className="text-3xl font-extrabold text-red-600 uppercase">FÚTBOL NACIONAL</h2>
-            <ArrowRight className="text-red-600 group-hover:translate-x-1 transition-transform" />
+            )) : (
+              <p className="text-gray-500 text-sm">Cargando noticias...</p>
+            )}
           </div>
-          <Link href="/category/futbol-nacional" className="hidden md:inline-block border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
-            VER TODAS
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {futbolNacionalPosts.map((post: Post) => (
-            <Link key={post.id} href={`/posts/${post.slug}`} className="group relative block">
-              <div className="relative h-64 w-full overflow-hidden rounded-lg mb-3">
-                {post.featuredImage?.node?.sourceUrl ? (
-                  <Image
-                    src={post.featuredImage.node.sourceUrl}
-                    alt={post.featuredImage.node.altText || post.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200"></div>
-                )}
-                <div className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors z-10">
-                  <Bookmark size={16} />
+
+          {/* LO MÁS RECIENTE DE LA RED Section */}
+          <div className="flex flex-col">
+            <div className="bg-[#FF0000] rounded-[15px] py-3 px-4 mb-4 flex justify-center items-center">
+              <h3 className="text-xl font-bold text-white text-center">LO MÁS RECIENTE DE LA RED</h3>
+            </div>
+
+            <div className="flex flex-col gap-0 border border-[#DCDCDC] rounded-[15px] overflow-hidden">
+              {subFeaturedPosts.map((post, i) => (
+                <div key={post.id} className="p-5 border-b border-[#DCDCDC] last:border-0 flex gap-6 items-center hover:bg-gray-50 transition-colors">
+                  <span className="text-[#9F9F9F] text-xl font-bold">0{i + 1}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[#E40000] text-xs font-bold uppercase">
+                      {post.categories?.nodes[0]?.name || "NOTICIAS"}
+                    </span>
+                    <Link href={`/posts/${post.slug}`}>
+                      <h4 className="text-base font-bold text-black leading-tight hover:text-[#E40000] transition-colors">{post.title}</h4>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-              <span className="text-red-600 text-xs font-bold uppercase block mb-1">
-                {post.categories?.nodes[0]?.name || "Deportes"}
-              </span>
-              <h3 className="font-bold text-lg leading-tight group-hover:text-red-600 transition-colors line-clamp-2">
-                {post.title}
-              </h3>
-            </Link>
-          ))}
+              ))}
+            </div>
+          </div>
+
+          {/* Sidebar Ads */}
+          <div className="w-full h-[450px] bg-[#FF0000] rounded-[15px] flex flex-col justify-center items-center text-white p-6 text-center">
+            <h3 className="text-xl font-bold mb-2">Anuncio 1</h3>
+            <p className="text-base">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
+          </div>
+
+          <div className="w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex flex-col justify-center items-center text-[#717171] p-6 text-center">
+            <h3 className="text-xl font-bold mb-2 text-[#9F9F9F]">Anuncio 1</h3>
+            <p className="text-base">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
+          </div>
+
         </div>
-      </section>
 
-      {/* Hablando con los Cracks (Iframe) */}
-      <section className="mb-12">
-        <h2 className="text-3xl font-extrabold text-red-600 uppercase mb-6">HABLANDO CON LOS CRACKS</h2>
-        <div className="w-full">
-          <iframe
-            src="https://omny.fm/shows/cracks/playlists/podcast/embed?style=cover"
-            allow="autoplay; clipboard-write"
-            width="100%"
-            height="590"
-            frameBorder="0"
-            title="Hablando con los Cracks"
-            className="w-full rounded-lg shadow-md"
-          ></iframe>
-        </div>
-      </section>
-
-      {/* Topic Rows */}
-      {internacionalesPosts.length > 0 && (
-        <TopicRow
-          title={dynamicCategoryName.toUpperCase()}
-          posts={internacionalesPosts}
-          viewAllLink="/category/internacionales"
-        />
-      )}
-
-      {deporteIntPosts.length > 0 && (
-        <TopicRow
-          title="DEPORTE INTERNACIONAL"
-          posts={deporteIntPosts}
-          viewAllLink="/category/deporte-internacional"
-        />
-      )}
-
-      {deporteNacPosts.length > 0 && (
-        <TopicRow
-          title="DEPORTE NACIONAL"
-          posts={deporteNacPosts}
-          viewAllLink="/category/deporte-nacional"
-        />
-      )}
-
-      {economiaPosts.length > 0 && (
-        <TopicRow
-          title="ECONOMÍA"
-          posts={economiaPosts}
-          viewAllLink="/category/economia"
-        />
-      )}
+      </div>
     </main>
   );
 }

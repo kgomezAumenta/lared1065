@@ -1,12 +1,19 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import AdvertisingBanner from "@/components/AdvertisingBanner";
 
 interface Post {
     id: string;
     title: string;
     slug: string;
     date: string;
+    excerpt: string;
+    author: {
+        node: {
+            name: string;
+        }
+    };
     categories: {
         nodes: {
             name: string;
@@ -19,7 +26,17 @@ interface Post {
             altText: string;
         };
     };
+    type?: 'post';
 }
+
+interface AdItem {
+    id: string;
+    type: 'ad';
+    title: string;
+    content: string;
+}
+
+type GridItem = Post | AdItem;
 
 interface CategoryCount {
     name: string;
@@ -49,6 +66,12 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
           title
           slug
           date
+          excerpt
+          author {
+            node {
+              name
+            }
+          }
           categories {
             nodes {
               name
@@ -91,8 +114,6 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
     }
   `;
 
-    console.log('[CATEGORY PAGE] Fetching data for slug:', slug, 'after:', after, 'before:', before);
-
     try {
         const variables: any = {
             categoryName: slug,
@@ -119,10 +140,6 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
 
         const json = await res.json();
 
-        if (json.errors) {
-            console.error('[CATEGORY PAGE] GraphQL Errors:', json.errors);
-        }
-
         return {
             posts: json.data?.posts?.nodes || [],
             pageInfo: json.data?.posts?.pageInfo || null,
@@ -140,6 +157,34 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
             categories: []
         };
     }
+}
+
+// Helper to inject ads at specific positions
+function insertAds(posts: Post[]): GridItem[] {
+    const items: GridItem[] = [];
+    const adsConfiguration = [
+        { index: 1, id: 'ad-1', title: 'Anuncio 1', content: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.' },
+        { index: 8, id: 'ad-2', title: 'Anuncio 1', content: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.' }
+    ];
+
+    let currentPost = 0;
+    const maxItems = posts.length + adsConfiguration.length;
+
+    for (let i = 0; i < maxItems; i++) {
+        const ad = adsConfiguration.find(a => a.index === i);
+        if (ad) {
+            items.push({ type: 'ad', ...ad });
+        } else {
+            if (currentPost < posts.length) {
+                items.push({ type: 'post', ...posts[currentPost] });
+                currentPost++;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return items;
 }
 
 export async function generateMetadata({
@@ -175,57 +220,90 @@ export default async function CategoryPage({
 
     const title = categoryInfo?.name || slug.replace("-", " ").toUpperCase();
 
-    // Filter main categories for sidebar (matching WordPress categories)
+    // Filter main categories for sidebar
     const mainCategories = categories.filter((cat: CategoryCount) =>
         ['nacionales', 'internacionales', 'economia', 'futbol-nacional', 'futbol-internacional', 'deporte-nacional', 'deporte-internacional'].includes(cat.slug)
     );
 
+    const gridItems = insertAds(posts);
+
     return (
         <main className="container mx-auto px-4 py-8 pb-32">
-            {/* Header */}
-            <div className="mb-8 border-b border-gray-200 pb-4">
-                <h1 className="text-3xl font-extrabold uppercase text-gray-900">
+            {/* Header with Underline */}
+            <div className="mb-6 relative">
+                <h1 className="text-2xl font-bold uppercase text-gray-900 leading-tight">
                     {title}
                 </h1>
+                <div className="w-full h-[2px] bg-black mt-2 max-w-full"></div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Advertising Banner (From Figma) */}
+            <AdvertisingBanner className="rounded-[15px] mb-12 shadow-sm min-h-[150px]" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
                 {/* Main Content - 3 columns */}
                 <div className="lg:col-span-3">
                     {/* Posts Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                        {posts.length > 0 ? (
-                            posts.map((post: Post) => (
-                                <Link key={post.id} href={`/posts/${post.slug}`} className="group flex flex-col gap-3">
-                                    <div className="relative h-48 w-full overflow-hidden rounded-lg bg-gray-200">
-                                        {post.featuredImage?.node?.sourceUrl ? (
-                                            <Image
-                                                src={post.featuredImage.node.sourceUrl}
-                                                alt={post.featuredImage.node.altText || post.title}
-                                                fill
-                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                            />
-                                        ) : (
-                                            <div className="flex items-center justify-center h-full text-gray-400 text-xs uppercase font-bold">Sin imagen</div>
-                                        )}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-red-600 text-xs font-bold uppercase mb-1">
-                                            {post.categories?.nodes[0]?.name || title}
-                                        </span>
-                                        <h2 className="font-bold text-gray-900 leading-tight group-hover:text-red-600 transition-colors line-clamp-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-8">
+                        {gridItems.length > 0 ? (
+                            gridItems.map((item: GridItem) => {
+                                if (item.type === 'ad') {
+                                    return (
+                                        <div key={item.id} className="h-full">
+                                            <AdvertisingBanner className="h-full rounded-[15px] px-6 py-8" />
+                                        </div>
+                                    );
+                                }
+
+                                const post = item as Post;
+                                return (
+                                    <Link key={post.id} href={`/posts/${post.slug}`} className="group flex flex-col gap-3">
+                                        {/* Image */}
+                                        <div className="relative h-[169px] w-full overflow-hidden rounded-[10px] bg-gray-200">
+                                            {post.featuredImage?.node?.sourceUrl ? (
+                                                <Image
+                                                    src={post.featuredImage.node.sourceUrl}
+                                                    alt={post.featuredImage.node.altText || post.title}
+                                                    fill
+                                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full text-gray-400 text-xs uppercase font-bold">Sin imagen</div>
+                                            )}
+                                        </div>
+
+                                        {/* Category Tag Pill */}
+                                        <div className="flex">
+                                            <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[10px]">
+                                                {post.categories?.nodes[0]?.name || title}
+                                            </span>
+                                        </div>
+
+                                        {/* Title */}
+                                        <h2 className="font-bold text-[18px] leading-tight text-black group-hover:text-[#E40000] transition-colors line-clamp-3">
                                             {post.title}
                                         </h2>
-                                        <span className="text-gray-400 text-xs mt-2">
-                                            {new Date(post.date).toLocaleDateString('es-GT', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
-                                        </span>
-                                    </div>
-                                </Link>
-                            ))
+
+                                        {/* Excerpt */}
+                                        <div
+                                            className="text-[#717171] text-[13px] font-normal leading-snug line-clamp-4"
+                                            dangerouslySetInnerHTML={{ __html: post.excerpt }}
+                                        />
+
+                                        {/* Meta: Author and Date */}
+                                        <div className="flex justify-between items-center text-[11px] text-black mt-1">
+                                            <span className="font-normal">{post.author?.node?.name || 'Redacción'}</span>
+                                            <span className="text-[#9F9F9F] font-normal">
+                                                {new Date(post.date).toLocaleDateString('en-US', {
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+                                    </Link>
+                                );
+                            })
                         ) : (
                             <div className="col-span-full py-20 text-center text-gray-500">
                                 <p className="text-xl">No hay noticias en esta categoría aún.</p>
@@ -240,7 +318,7 @@ export default async function CategoryPage({
                                 {pageInfo.hasPreviousPage && (
                                     <Link
                                         href={`/category/${slug}?before=${pageInfo.startCursor}&page=${Math.max(1, page - 1)}`}
-                                        className="px-6 py-2 border border-red-600 text-red-600 rounded font-bold hover:bg-red-600 hover:text-white transition-colors"
+                                        className="px-6 py-2 border border-[#E40000] text-[#E40000] rounded font-bold hover:bg-[#E40000] hover:text-white transition-colors"
                                     >
                                         ← Anterior
                                     </Link>
@@ -253,7 +331,7 @@ export default async function CategoryPage({
                                 {pageInfo.hasNextPage && (
                                     <Link
                                         href={`/category/${slug}?after=${pageInfo.endCursor}&page=${page + 1}`}
-                                        className="px-6 py-2 border border-red-600 text-red-600 rounded font-bold hover:bg-red-600 hover:text-white transition-colors"
+                                        className="px-6 py-2 border border-[#E40000] text-[#E40000] rounded font-bold hover:bg-[#E40000] hover:text-white transition-colors"
                                     >
                                         Siguiente →
                                     </Link>
@@ -264,16 +342,16 @@ export default async function CategoryPage({
                 </div>
 
                 {/* Sidebar */}
-                <aside className="lg:col-span-1">
-                    {/* Internacionales Section */}
-                    <div className="mb-8">
-                        <div className="bg-red-600 text-white font-bold text-sm px-4 py-2 mb-4 uppercase">
+                <aside className="lg:col-span-1 space-y-8">
+                    {/* Internacionales Section (Mini List) */}
+                    <div className="flex flex-col gap-4">
+                        <div className="bg-[#E40000] text-center text-white font-bold text-[18px] py-2 rounded-[15px] uppercase">
                             Internacionales
                         </div>
                         <div className="space-y-4">
-                            {sidebarPosts.slice(0, 5).map((post: Post) => (
-                                <Link key={post.id} href={`/posts/${post.slug}`} className="group flex gap-3">
-                                    <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded bg-gray-200">
+                            {sidebarPosts.slice(0, 4).map((post: Post) => (
+                                <Link key={post.id} href={`/posts/${post.slug}`} className="group flex gap-3 border-b border-[#E3E3E3] pb-3 last:border-0 items-center">
+                                    <div className="relative w-[80px] h-[80px] shrink-0 overflow-hidden rounded-[10px] bg-gray-200">
                                         {post.featuredImage?.node?.sourceUrl && (
                                             <Image
                                                 src={post.featuredImage.node.sourceUrl}
@@ -283,11 +361,11 @@ export default async function CategoryPage({
                                             />
                                         )}
                                     </div>
-                                    <div className="flex-1">
-                                        <span className="text-red-600 text-xs font-bold uppercase block mb-1">
+                                    <div className="flex-1 flex flex-col justify-center gap-1">
+                                        <span className="text-[#E40000] text-[10px] font-bold uppercase block">
                                             Internacionales
                                         </span>
-                                        <h3 className="text-sm font-bold leading-tight group-hover:text-red-600 transition-colors line-clamp-3">
+                                        <h3 className="text-[14px] text-black font-bold leading-tight group-hover:text-[#E40000] transition-colors line-clamp-3">
                                             {post.title}
                                         </h3>
                                     </div>
@@ -296,20 +374,23 @@ export default async function CategoryPage({
                         </div>
                     </div>
 
-                    {/* Otras Secciones */}
-                    <div className="bg-red-600 text-white rounded-lg overflow-hidden">
-                        <div className="font-bold text-sm px-4 py-3 uppercase">
-                            Otras secciones
+                    {/* Ad Box - LARGE RED BOX below sidebar list */}
+                    <AdvertisingBanner className="rounded-[15px] px-6 py-8 min-h-[300px]" />
+
+                    {/* Otras Secciones - Black Box with Red Top */}
+                    <div className="bg-black rounded-t-[20px] overflow-hidden">
+                        <div className="bg-[#FF0000] text-white font-bold text-[18px] px-6 py-4 rounded-t-[15px] uppercase text-center">
+                            OTRAS SECCIONES
                         </div>
-                        <div className="bg-red-700">
+                        <div className="flex flex-col">
                             {mainCategories.map((cat: CategoryCount) => (
                                 <Link
                                     key={cat.slug}
                                     href={`/category/${cat.slug}`}
-                                    className="flex justify-between items-center px-4 py-3 border-b border-red-600 hover:bg-red-600 transition-colors text-sm"
+                                    className="flex justify-between items-center px-6 py-4 border-b border-gray-800 hover:bg-white/10 transition-colors last:border-0"
                                 >
-                                    <span className="uppercase font-semibold">{cat.name}</span>
-                                    <span className="font-bold">{cat.count || 0}</span>
+                                    <span className="text-white text-[14px] font-medium uppercase">{cat.name}</span>
+                                    <span className="text-white text-[14px] font-bold">{cat.count || 0}</span>
                                 </Link>
                             ))}
                         </div>

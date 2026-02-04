@@ -36,7 +36,7 @@ export default function TopicRow({ title, posts, viewAllLink, categorySlug }: To
         <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 group cursor-pointer">
-                    <h2 className="text-3xl font-extrabold text-red-600 uppercase">
+                    <h2 className="text-2xl font-extrabold text-red-600 uppercase">
                         {title}
                     </h2>
                     <ArrowRight className="text-red-600 group-hover:translate-x-1 transition-transform" />
@@ -71,7 +71,7 @@ export default function TopicRow({ title, posts, viewAllLink, categorySlug }: To
                             <span className="text-red-600 text-xs font-bold uppercase block mb-1">
                                 {post.categories?.nodes[0]?.name || title}
                             </span>
-                            <h3 className="font-bold text-lg leading-tight group-hover:text-red-600 transition-colors">
+                            <h3 className="font-bold text-base leading-tight group-hover:text-red-600 transition-colors">
                                 {post.title}
                             </h3>
                         </Link>
