@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Twitter, Link as LinkIcon, MessageSquare, Share2, Bookmark } from "lucide-react";
+import { AdvertisingBanner } from "@/components/AdvertisingBanner"; // Assuming you have this or will use a placeholder
 
 interface Post {
     id: string;
@@ -10,6 +11,7 @@ interface Post {
     content: string;
     slug: string;
     date: string;
+    excerpt: string;
     categories: {
         nodes: {
             name: string;
@@ -29,6 +31,12 @@ interface Post {
     };
 }
 
+// Strip HTML helper
+const stripHtml = (html: string) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+};
+
 async function getData(slug: string) {
     const query = `
     query GetPostData($slug: ID!) {
@@ -38,6 +46,7 @@ async function getData(slug: string) {
         content
         slug
         date
+        excerpt
         categories {
             nodes {
                 name
@@ -56,14 +65,16 @@ async function getData(slug: string) {
           }
         }
       }
-      latestPosts: posts(first: 15) {
+      latestPosts: posts(first: 6) {
         nodes {
           id
           title
           slug
+          date
           categories {
             nodes {
                 name
+                slug
             }
           }
           featuredImage {
@@ -111,7 +122,7 @@ export async function generateMetadata({
 
     return {
         title: `${post.title} - La Red 106.1`,
-        description: `Lea más sobre ${post.title} en La Red 106.1`,
+        description: stripHtml(post.excerpt) || `Lea más sobre ${post.title} en La Red 106.1`,
     };
 }
 
@@ -127,61 +138,49 @@ export default async function PostPage({
         notFound();
     }
 
-    const otherPosts = recentPosts.filter((p: Post) => p.id !== post.id);
-    const sidebarPosts = otherPosts.slice(0, 5);
-    const bottomGridPosts = otherPosts.slice(0, 8);
+    // Filter out current post from recent posts for sidebar
+    const otherPosts = recentPosts.filter((p: Post) => p.id !== post.id).slice(0, 5);
+    const bottomGridPosts = recentPosts.filter((p: Post) => p.id !== post.id).slice(0, 4);
 
     return (
         <main className="container mx-auto px-4 py-8 pb-32">
-            {/* Top Ad Banner */}
-            <div className="w-full h-24 md:h-32 bg-gray-50 flex items-center justify-center mb-8 rounded-sm border border-gray-100 max-w-5xl mx-auto">
-                <span className="text-gray-300 text-xs font-bold uppercase tracking-widest">Espacio Publicitario (TOP)</span>
+
+            {/* Top Red Ad Banner */}
+            <div className="w-full bg-[#FF0000] rounded-[15px] flex flex-col justify-center items-center gap-3 py-10 mb-12 text-center text-white p-6">
+                <h3 className="text-2xl font-bold">Anuncio 1</h3>
+                <p className="text-xl max-w-4xl">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto">
-                {/* Main Content Column */}
-                <article className="lg:col-span-8">
+            <div className="flex flex-col xl:flex-row gap-12 justify-center items-start">
 
-                    {/* Breadcrumb / Category */}
-                    <div className="flex gap-2 mb-4">
-                        {post.categories?.nodes.map((cat: { name: string; slug: string }, idx: number) => (
-                            <Link key={idx} href={`/category/${cat.slug}`} className="text-red-600 text-xs font-black uppercase tracking-wider hover:underline">
-                                {cat.name}
-                            </Link>
-                        ))}
+                {/* Main Content Column */}
+                <article className="flex-1 w-full max-w-[900px]">
+
+                    {/* Category Pill */}
+                    <div className="flex justify-start mb-4">
+                        <span className="bg-[#E40000] text-white text-base font-bold uppercase px-6 py-2 rounded-[10px]">
+                            {post.categories?.nodes[0]?.name || "NOTICIA"}
+                        </span>
                     </div>
 
                     {/* Title */}
-                    <h1 className="text-4xl md:text-5xl font-black mb-6 leading-[1.1] uppercase text-gray-900">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-black">
                         {post.title}
                     </h1>
 
-                    {/* Metadata & Social Share Top */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-t border-b border-gray-100 mb-8">
-                        <div className="flex items-center gap-3 text-sm text-gray-500">
-                            <span className="font-bold uppercase text-gray-900">Por {post.author?.node?.name || "Redacción"}</span>
-                            <span className="text-gray-300">|</span>
-                            <span>{new Date(post.date).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button className="p-2 bg-[#1877F2] text-white rounded-full hover:opacity-90 transition-opacity">
-                                <Facebook size={18} fill="currentColor" />
-                            </button>
-                            <button className="p-2 bg-[#1DA1F2] text-white rounded-full hover:opacity-90 transition-opacity">
-                                <Twitter size={18} fill="currentColor" />
-                            </button>
-                            <button className="p-2 bg-red-600 text-white rounded-full hover:opacity-90 transition-opacity">
-                                <LinkIcon size={18} />
-                            </button>
-                            <button className="p-2 bg-[#25D366] text-white rounded-full hover:opacity-90 transition-opacity">
-                                <MessageSquare size={18} fill="currentColor" />
-                            </button>
-                        </div>
+                    {/* Meta: Author & Date */}
+                    <div className="flex justify-between items-center w-full mb-6">
+                        <span className="text-black text-xl font-normal">
+                            {post.author?.node?.name || "Redacción"}
+                        </span>
+                        <span className="text-[#9F9F9F] text-xl font-normal">
+                            {new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </span>
                     </div>
 
                     {/* Featured Image */}
                     {post.featuredImage?.node?.sourceUrl && (
-                        <div className="relative w-full aspect-video md:aspect-[21/9] mb-10 overflow-hidden rounded-sm">
+                        <div className="relative w-full aspect-video mb-8 overflow-hidden rounded-[20px]">
                             <Image
                                 src={post.featuredImage.node.sourceUrl}
                                 alt={post.featuredImage.node.altText || post.title}
@@ -194,11 +193,12 @@ export default async function PostPage({
 
                     {/* Content */}
                     <div
-                        className="prose prose-lg prose-red max-w-none text-gray-800 leading-relaxed
-                        prose-p:mb-6 prose-p:leading-relaxed prose-strong:font-black
-                        prose-img:rounded-sm prose-img:shadow-sm
-                        prose-a:text-red-600 prose-a:no-underline hover:prose-a:underline
-                        [&_.wp-embedded-content]:mx-auto [&_.wp-embedded-content]:max-w-full [&_.wp-embedded-content]:rounded-lg [&_.wp-embedded-content]:shadow-md [&_.wp-embedded-content]:overflow-hidden
+                        className="prose prose-lg prose-red max-w-none text-[#717171] text-xl font-normal leading-relaxed
+                        prose-headings:font-bold prose-headings:text-black
+                        prose-p:mb-6 prose-p:leading-relaxed
+                        prose-a:text-[#E40000] prose-a:no-underline hover:prose-a:underline
+                        prose-img:rounded-[20px] prose-img:shadow-sm
+                        [&_.wp-embedded-content]:mx-auto [&_.wp-embedded-content]:max-w-full [&_.wp-embedded-content]:rounded-[15px] [&_.wp-embedded-content]:shadow-md [&_.wp-embedded-content]:overflow-hidden
                         "
                         dangerouslySetInnerHTML={{ __html: post.content }}
                     />
@@ -216,122 +216,60 @@ export default async function PostPage({
                                         }
                                         iframe.style.visibility = 'visible';
                                         iframe.style.position = 'static';
-                                        // Hide the fallback blockquote
                                         const secret = iframe.getAttribute('data-secret');
                                         if (secret) {
                                             const blockquote = document.querySelector('blockquote.wp-embedded-content[data-secret="' + secret + '"]');
-                                            if (blockquote) {
-                                                blockquote.style.display = 'none';
-                                            }
+                                            if (blockquote) { blockquote.style.display = 'none'; }
                                         }
                                     });
                                 }
-                                // Run on load and periodically in case of lazy loading
                                 window.addEventListener('load', activeEmbeds);
                                 setTimeout(activeEmbeds, 1000);
-                                setTimeout(activeEmbeds, 3000);
-                                // Also listen for messages from the embed script
-                                window.addEventListener('message', function(e) {
-                                    if (e.data && e.data.secret) {
-                                        activeEmbeds();
-                                    }
-                                });
                             })();
                             `,
                         }}
                     />
 
-                    {/* Social Share Bottom */}
-                    <div className="my-12 py-6 border-t border-b border-gray-100 flex flex-col md:flex-row md:items-center gap-6">
-                        <span className="font-black text-xs uppercase tracking-widest text-gray-400">Comparte esta noticia:</span>
-                        <div className="flex gap-3">
-                            <button className="flex items-center gap-2 px-4 py-2 bg-[#1877F2] text-white rounded text-sm font-bold hover:brightness-95">
-                                <Facebook size={16} fill="currentColor" /> Facebook
-                            </button>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-[#1DA1F2] text-white rounded text-sm font-bold hover:brightness-95">
-                                <Twitter size={16} fill="currentColor" /> Twitter
-                            </button>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded text-sm font-bold hover:brightness-95">
-                                <Share2 size={16} /> WhatsApp
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Ad Banner Mid */}
-                    <div className="w-full h-32 bg-gray-50 flex items-center justify-center my-12 rounded-sm border border-gray-100">
-                        <span className="text-gray-300 text-xs font-bold uppercase tracking-widest">Espacio Publicitario (MID)</span>
-                    </div>
                 </article>
 
                 {/* Sidebar Column */}
-                <aside className="lg:col-span-4 space-y-10">
-                    <div>
-                        <div className="bg-black text-white px-4 py-2 mb-6">
-                            <h3 className="font-black uppercase text-sm italic tracking-tighter">Noticias Más Recientes</h3>
+                <aside className="w-full xl:w-[400px] shrink-0 flex flex-col gap-8">
+
+                    {/* LO MÁS RECIENTE DE LA RED */}
+                    <div className="flex flex-col">
+                        <div className="bg-[#FF0000] rounded-[15px] py-3 px-4 mb-4 flex justify-center items-center">
+                            <h3 className="text-xl font-bold text-white text-center uppercase">LO MÁS RECIENTE DE LA RED</h3>
                         </div>
-                        <div className="space-y-6">
-                            {sidebarPosts.map((sPost: Post) => (
-                                <Link key={sPost.id} href={`/posts/${sPost.slug}`} className="group flex flex-col gap-1 border-b border-gray-100 pb-5 last:border-0 text-decoration-none">
-                                    <span className="text-red-500 text-[10px] font-black uppercase tracking-widest leading-none">
-                                        {sPost.categories?.nodes[0]?.name || "Noticias"}
+
+                        <div className="flex flex-col border border-[#DCDCDC] rounded-[15px] overflow-hidden">
+                            {otherPosts.map((sPost: Post, idx: number) => (
+                                <Link key={sPost.id} href={`/posts/${sPost.slug}`} className="p-5 border-b border-[#DCDCDC] last:border-0 flex gap-6 items-center hover:bg-gray-50 transition-colors group">
+                                    <span className="text-[#9F9F9F] text-2xl font-bold">
+                                        {String(idx + 1).padStart(2, '0')}
                                     </span>
-                                    <h4 className="font-bold text-base leading-tight group-hover:text-red-600 transition-colors text-gray-900">
-                                        {sPost.title}
-                                    </h4>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[#E40000] text-sm font-bold uppercase">
+                                            {sPost.categories?.nodes[0]?.name || "NOTICIAS"}
+                                        </span>
+                                        <h4 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">{sPost.title}</h4>
+                                    </div>
                                 </Link>
                             ))}
                         </div>
                     </div>
 
-                    {/* Sidebar Ad Vertical */}
-                    <div className="hidden lg:block w-full h-[600px] bg-gray-50 flex items-center justify-center rounded-sm border border-gray-100 sticky top-8">
-                        <div className="relative h-full w-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-gray-50 to-white">
-                            <span className="text-gray-300 font-black text-4xl block absolute inset-0 flex items-center justify-center -rotate-90 pointer-events-none opacity-20">PUBLI-LOCAL</span>
-                            <div className="bg-red-600/5 p-8 rounded-full mb-4">
-                                <Bookmark size={48} className="text-red-600/20" />
-                            </div>
-                            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Publicidad Vertical</p>
-                        </div>
+                    {/* Sidebar Ad Vertical - Grey */}
+                    <div className="w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex flex-col justify-center items-center text-[#717171] p-6 text-center text-xl">
+                        <h3 className="font-bold mb-2 text-[#9F9F9F]">Anuncio 1</h3>
+                        <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
                     </div>
+
                 </aside>
+
             </div>
 
-            {/* Bottom Grid "Lo Que Necesitas Saber" */}
-            <section className="mt-20 max-w-7xl mx-auto border-t border-gray-100 pt-16">
-                <div className="flex flex-col items-center mb-12">
-                    <div className="bg-red-600 text-white font-black text-xl px-6 py-2 skew-x-[-12deg] mb-2">
-                        <span className="skew-x-[12deg] inline-block uppercase italic tracking-tighter">Lo que necesitas saber</span>
-                    </div>
-                    <div className="h-1 w-24 bg-gray-900" />
-                </div>
+            {/* Bottom Grid "Lo Que Necesitas Saber" - Optional Reuse from existing if needed, but sticking to design request for now this matches layout */}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-                    {bottomGridPosts.map((rPost: Post) => (
-                        <Link key={rPost.id} href={`/posts/${rPost.slug}`} className="group flex flex-col gap-3">
-                            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-gray-100">
-                                {rPost.featuredImage?.node?.sourceUrl ? (
-                                    <Image
-                                        src={rPost.featuredImage.node.sourceUrl}
-                                        alt={rPost.featuredImage.node.altText || rPost.title}
-                                        fill
-                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold uppercase text-[10px]">Sin imagen</div>
-                                )}
-                            </div>
-                            <div>
-                                <span className="text-red-600 text-[10px] font-black uppercase tracking-widest block mb-1">
-                                    {rPost.categories?.nodes[0]?.name || "Noticias"}
-                                </span>
-                                <h3 className="font-bold text-sm leading-snug group-hover:text-red-600 transition-colors line-clamp-3">
-                                    {rPost.title}
-                                </h3>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            </section>
         </main>
     );
 }
