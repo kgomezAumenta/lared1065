@@ -47,7 +47,7 @@ const stripHtml = (html: string) => {
 async function getData() {
   const query = `
     query GetHomeData {
-      stickyPost: posts(first: 1, where: { tag: "Portada" }) {
+      stickyPost: posts(first: 1, where: { tag: "urgente-portada" }) {
         nodes {
           id
           title
@@ -120,9 +120,20 @@ async function getData() {
     }
 
     const data = json.data;
+    const now = new Date().getTime();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+    // Validate Sticky Hero (must be < 24h old)
+    let validStickyHero = null;
+    if (data?.stickyPost?.nodes[0]) {
+      const postDate = new Date(data.stickyPost.nodes[0].date).getTime();
+      if ((now - postDate) < twentyFourHours) {
+        validStickyHero = data.stickyPost.nodes[0];
+      }
+    }
 
     return {
-      stickyHero: data?.stickyPost?.nodes[0] || null,
+      stickyHero: validStickyHero,
       latestPosts: data?.latestPosts?.nodes || [],
       nacionalesPosts: data?.nacionales?.nodes || [],
       futbolNacionalPosts: data?.futbolNacional?.nodes || [],
@@ -192,13 +203,32 @@ export default async function Home() {
     : latestPosts.slice(1, 6);
 
   // 3. AHORA Logic
-  const isWithinLast3Hours = (dateString: string) => {
+  // Helper: Repair malformed "YYYY-DD-MM" dates with incorrect "UTC" label.
+  // Input: "2026-05-02T16:03:00+00:00" (Day 05, Month 02, Time 16:03 Local)
+  // Output: Date object for "2026-02-05T16:03:00-06:00"
+  const repairDate = (dateString: string) => {
+    if (!dateString) return new Date();
+
+    // Check for the specific malformed pattern with +00:00 suffix
+    // Warning: We are assuming YYYY-DD-MM based on logs (2026-05-02 for Feb 5th)
+    const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\+00:00$/);
+
+    if (match) {
+      const [, year, day, month, hour, minute, second] = match;
+      // Swap Day (group 2) and Month (group 3). Force -06:00 timezone.
+      return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}-06:00`);
+    }
+
+    // Fallback for standard ISO or other string formats
+    return new Date(dateString);
+  };
+
+  const isRecentBoxItem = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    // Use client-side timezone offset if needed, but server-side UTC comparison is safer if dates are ISO.
-    // WordPress GQL dates are usually UTC or offset included.
-    const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000); // 3 hours in ms
-    return date >= threeHoursAgo && date <= now;
+    // 24 hour window
+    const timeLimit = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    return date >= timeLimit;
   };
 
   const mappedAcfItems = acfBreakingNews.map((item: BreakingAcfItem, index: number) => {
@@ -208,10 +238,14 @@ export default async function Home() {
     } else if (typeof item.newsUrl === 'string') {
       linkUrl = item.newsUrl;
     }
+
+    // Apply repair logic
+    const validDate = item.newsTimestamp ? repairDate(item.newsTimestamp).toISOString() : new Date().toISOString();
+
     return {
       id: `acf-${index}`,
       title: item.newsTitle,
-      date: item.newsTimestamp || new Date().toISOString(),
+      date: validDate,
       link: linkUrl,
       type: 'custom' as const
     };
@@ -225,9 +259,9 @@ export default async function Home() {
     type: 'post' as const
   }));
 
-  // Filter items by 3 hours
-  const validAcfItems = mappedAcfItems.filter((item: any) => item.date ? isWithinLast3Hours(item.date) : false);
-  const validFallbackPosts = mappedFallbackPosts.filter((item: any) => isWithinLast3Hours(item.date));
+  // Filter items by 24 hours
+  const validAcfItems = mappedAcfItems.filter((item: any) => item.date ? isRecentBoxItem(item.date) : false);
+  const validFallbackPosts = mappedFallbackPosts.filter((item: any) => isRecentBoxItem(item.date));
 
   // Decision Logic: Use ACF (if valid), else Fallback (if valid), else Unfiltered Fallback
   // "sino en ACF no hay nada mostrar las ultimas noticias": If no recent news, just show latest.
@@ -321,7 +355,7 @@ export default async function Home() {
               {/* Post 1 */}
               {nacionalesPosts[0] && (
                 <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
-                  <div className="relative h-[200px] w-full rounded-[10px] overflow-hidden">
+                  <Link href={`/posts/${nacionalesPosts[0].slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
                     {nacionalesPosts[0].featuredImage?.node?.sourceUrl && (
                       <Image
                         src={nacionalesPosts[0].featuredImage.node.sourceUrl}
@@ -330,7 +364,7 @@ export default async function Home() {
                         className="object-cover"
                       />
                     )}
-                  </div>
+                  </Link>
                   <div className="self-start">
                     <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
                       NACIONALES
@@ -358,7 +392,7 @@ export default async function Home() {
               {/* Post 2 */}
               {nacionalesPosts[1] && (
                 <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
-                  <div className="relative h-[200px] w-full rounded-[10px] overflow-hidden">
+                  <Link href={`/posts/${nacionalesPosts[1].slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
                     {nacionalesPosts[1].featuredImage?.node?.sourceUrl && (
                       <Image
                         src={nacionalesPosts[1].featuredImage.node.sourceUrl}
@@ -367,7 +401,7 @@ export default async function Home() {
                         className="object-cover"
                       />
                     )}
-                  </div>
+                  </Link>
                   <div className="self-start">
                     <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
                       NACIONALES
@@ -413,7 +447,7 @@ export default async function Home() {
               {/* Post 1 */}
               {internacionalesPosts[0] && (
                 <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
-                  <div className="relative h-[200px] w-full rounded-[10px] overflow-hidden">
+                  <Link href={`/posts/${internacionalesPosts[0].slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
                     {internacionalesPosts[0].featuredImage?.node?.sourceUrl && (
                       <Image
                         src={internacionalesPosts[0].featuredImage.node.sourceUrl}
@@ -422,7 +456,7 @@ export default async function Home() {
                         className="object-cover"
                       />
                     )}
-                  </div>
+                  </Link>
                   <div className="self-start">
                     <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
                       INTERNACIONAL
@@ -453,7 +487,7 @@ export default async function Home() {
               {/* Post 2 */}
               {internacionalesPosts[1] && (
                 <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
-                  <div className="relative h-[200px] w-full rounded-[10px] overflow-hidden">
+                  <Link href={`/posts/${internacionalesPosts[1].slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
                     {internacionalesPosts[1].featuredImage?.node?.sourceUrl && (
                       <Image
                         src={internacionalesPosts[1].featuredImage.node.sourceUrl}
@@ -462,7 +496,7 @@ export default async function Home() {
                         className="object-cover"
                       />
                     )}
-                  </div>
+                  </Link>
                   <div className="self-start">
                     <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
                       INTERNACIONAL
@@ -520,7 +554,7 @@ export default async function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {futbolNacionalPosts.slice(0, 2).map((post: Post) => (
                 <div key={post.id} className="flex flex-col gap-3">
-                  <div className="relative h-[300px] w-full rounded-[20px] overflow-hidden">
+                  <Link href={`/posts/${post.slug}`} className="relative block h-[300px] w-full rounded-[20px] overflow-hidden">
                     {post.featuredImage?.node?.sourceUrl && (
                       <Image
                         src={post.featuredImage.node.sourceUrl}
@@ -533,7 +567,7 @@ export default async function Home() {
                     <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
                       FUTBOL NACIONAL
                     </div>
-                  </div>
+                  </Link>
 
                   <Link href={`/posts/${post.slug}`} className="group">
                     <h3 className="text-xl font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
@@ -569,7 +603,7 @@ export default async function Home() {
               {/* 3 Columns for Futbol Internacional */}
               {futbolInternacionalPosts.slice(0, 3).map((post: Post) => (
                 <div key={post.id} className="flex flex-col gap-3">
-                  <div className="relative h-[270px] w-full rounded-[20px] overflow-hidden">
+                  <Link href={`/posts/${post.slug}`} className="relative block h-[270px] w-full rounded-[20px] overflow-hidden">
                     {post.featuredImage?.node?.sourceUrl ? (
                       <Image
                         src={post.featuredImage.node.sourceUrl}
@@ -583,7 +617,7 @@ export default async function Home() {
                     <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
                       FUTBOL INTERNACIONAL
                     </div>
-                  </div>
+                  </Link>
                   <Link href={`/posts/${post.slug}`} className="group">
                     <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
                       {post.title}

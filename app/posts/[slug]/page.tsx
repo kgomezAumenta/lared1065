@@ -2,9 +2,9 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
 import { Facebook, Twitter, Link as LinkIcon, MessageSquare, Share2, Bookmark } from "lucide-react";
-import AdvertisingBanner from "@/components/AdvertisingBanner"; // Assuming you have this or will use a placeholder
+import AdvertisingBanner from "@/components/AdvertisingBanner";
+import PostScripts from "@/components/PostScripts"; // Assuming you have this or will use a placeholder
 
 interface Post {
     id: string;
@@ -188,9 +188,7 @@ export default async function PostPage({
                         <span className="text-black text-xl font-normal">
                             {post.author?.node?.name || "Redacción"}
                         </span>
-                        <span className="text-[#9F9F9F] text-xl font-normal">
-                            {new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                        </span>
+                        {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </div>
 
                     {/* Featured Image */}
@@ -221,38 +219,7 @@ export default async function PostPage({
                         dangerouslySetInnerHTML={{ __html: processContent(post.content) }}
                     />
 
-                    {/* oEmbed Activation Logic */}
-                    <script
-                        dangerouslySetInnerHTML={{
-                            __html: `
-                            (function() {
-                                function activeEmbeds() {
-                                    const iframes = document.querySelectorAll('iframe.wp-embedded-content');
-                                    iframes.forEach(iframe => {
-                                        if (iframe.getAttribute('data-src') && !iframe.src) {
-                                            iframe.src = iframe.getAttribute('data-src');
-                                        }
-                                        iframe.style.visibility = 'visible';
-                                        iframe.style.position = 'static';
-                                        const secret = iframe.getAttribute('data-secret');
-                                        if (secret) {
-                                            const blockquote = document.querySelector('blockquote.wp-embedded-content[data-secret="' + secret + '"]');
-                                            if (blockquote) { blockquote.style.display = 'none'; }
-                                        }
-                                    });
-                                    });
-                                    
-                                    // Re-scan for Instagram/Twitter if new content injected or lazy loaded
-                                    if (window.instgrm) window.instgrm.Embeds.process();
-                                    if (window.twttr) window.twttr.widgets.load();
-                                }
-                                window.addEventListener('load', activeEmbeds);
-                                setTimeout(activeEmbeds, 1000);
-                                setTimeout(activeEmbeds, 3000);
-                            })();
-                            `,
-                        }}
-                    />
+
 
                 </article>
 
@@ -295,8 +262,7 @@ export default async function PostPage({
             {/* Bottom Grid "Lo Que Necesitas Saber" - Optional Reuse from existing if needed, but sticking to design request for now this matches layout */}
 
 
-            <Script src="https://platform.twitter.com/widgets.js" strategy="afterInteractive" />
-            <Script src="//www.instagram.com/embed.js" strategy="lazyOnload" />
+            <PostScripts />
         </main>
     );
 }

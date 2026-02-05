@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Facebook, Twitter, Instagram, Youtube, Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -77,9 +78,11 @@ export default function Footer() {
                     <div className="text-sm opacity-80">
                         &copy; {new Date().getFullYear()} Radio La Red. Todos los derechos reservados.
                     </div>
-                    <div className="flex flex-col items-center">
-                        <span className="text-xs uppercase tracking-wider font-semibold opacity-70">Powered by</span>
-                        <div className="font-bold text-xl italic tracking-tighter">AUMENTA</div>
+                    <div className="flex flex-col items-end gap-1">
+                        <span className="text-[10px] uppercase tracking-wider font-bold opacity-80">POWERED BY</span>
+                        <a href="https://aumenta.do" target="_blank" rel="noopener noreferrer">
+                            <Image src="/au-light-logo.svg" alt="Aumenta" width={160} height={40} className="w-auto h-10" />
+                        </a>
                     </div>
                 </div>
             </div>
