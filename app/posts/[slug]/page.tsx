@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { Facebook, Twitter, Link as LinkIcon, MessageSquare, Share2, Bookmark } from "lucide-react";
-import { AdvertisingBanner } from "@/components/AdvertisingBanner"; // Assuming you have this or will use a placeholder
+import AdvertisingBanner from "@/components/AdvertisingBanner"; // Assuming you have this or will use a placeholder
 
 interface Post {
     id: string;
@@ -35,6 +36,20 @@ interface Post {
 const stripHtml = (html: string) => {
     if (!html) return "";
     return html.replace(/<[^>]*>?/gm, "");
+};
+
+// Process content to fix lazy loaded images and clean scripts
+const processContent = (content: string) => {
+    if (!content) return "";
+    // Remove the lazyload placeholder src
+    let processed = content.replace(/src="data:image\/gif;base64,[^"]*"/g, '');
+    // Replace data-src with src
+    processed = processed.replace(/data-src=/g, 'src=');
+    // Replace data-srcset with srcset
+    processed = processed.replace(/data-srcset=/g, 'srcset=');
+    // Remove inline scripts to clean up and prevent conflicts
+    processed = processed.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gim, "");
+    return processed;
 };
 
 async function getData(slug: string) {
@@ -197,10 +212,13 @@ export default async function PostPage({
                         prose-headings:font-bold prose-headings:text-black
                         prose-p:mb-6 prose-p:leading-relaxed
                         prose-a:text-[#E40000] prose-a:no-underline hover:prose-a:underline
-                        prose-img:rounded-[20px] prose-img:shadow-sm
-                        [&_.wp-embedded-content]:mx-auto [&_.wp-embedded-content]:max-w-full [&_.wp-embedded-content]:rounded-[15px] [&_.wp-embedded-content]:shadow-md [&_.wp-embedded-content]:overflow-hidden
+                        prose-img:rounded-[20px] prose-img:shadow-sm prose-img:w-full prose-img:h-auto prose-img:my-6
+                        prose-figure:my-8 prose-figure:mx-auto prose-figure:w-full
+                        [&_figure]:w-full [&_figure]:max-w-full
+                        [&_iframe]:w-full [&_iframe]:rounded-[15px] [&_iframe]:shadow-md [&_iframe]:mx-auto
+                        [&_.wp-embedded-content]:max-w-full
                         "
-                        dangerouslySetInnerHTML={{ __html: post.content }}
+                        dangerouslySetInnerHTML={{ __html: processContent(post.content) }}
                     />
 
                     {/* oEmbed Activation Logic */}
@@ -222,9 +240,15 @@ export default async function PostPage({
                                             if (blockquote) { blockquote.style.display = 'none'; }
                                         }
                                     });
+                                    });
+                                    
+                                    // Re-scan for Instagram/Twitter if new content injected or lazy loaded
+                                    if (window.instgrm) window.instgrm.Embeds.process();
+                                    if (window.twttr) window.twttr.widgets.load();
                                 }
                                 window.addEventListener('load', activeEmbeds);
                                 setTimeout(activeEmbeds, 1000);
+                                setTimeout(activeEmbeds, 3000);
                             })();
                             `,
                         }}
@@ -270,6 +294,9 @@ export default async function PostPage({
 
             {/* Bottom Grid "Lo Que Necesitas Saber" - Optional Reuse from existing if needed, but sticking to design request for now this matches layout */}
 
+
+            <Script src="https://platform.twitter.com/widgets.js" strategy="afterInteractive" />
+            <Script src="//www.instagram.com/embed.js" strategy="lazyOnload" />
         </main>
     );
 }
