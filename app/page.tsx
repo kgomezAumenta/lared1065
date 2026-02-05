@@ -488,7 +488,7 @@ export default async function Home() {
           </section>
 
           {/* Hablando con los Cracks (Iframe) */}
-          <section className="">
+          <section className="hidden md:block">
             {/* Reduced from 3xl to 2xl */}
             <h2 className="text-2xl font-extrabold text-[#E40000] uppercase mb-6">HABLANDO CON LOS CRACKS</h2>
             <div className="w-full">
@@ -604,7 +604,7 @@ export default async function Home() {
         <div className="flex flex-col gap-8 w-full xl:w-[400px] shrink-0">
 
           {/* AHORA Section */}
-          <div className="bg-[#F7F7F7] rounded-[20px] p-6 flex flex-col gap-4">
+          <div className="bg-[#F7F7F7] rounded-[20px] p-6 hidden md:flex flex-col gap-4">
             <div className="flex items-center gap-4 mb-2">
               <div className="w-5 h-5 bg-[#E40000] rounded-full shrink-0" />
               <h3 className="text-xl font-bold text-black">AHORA</h3>
@@ -638,7 +638,7 @@ export default async function Home() {
           </div>
 
           {/* LO MÁS RECIENTE DE LA RED Section */}
-          <div className="flex flex-col">
+          <div className="hidden md:flex flex-col">
             <div className="bg-[#FF0000] rounded-[15px] py-3 px-4 mb-4 flex justify-center items-center">
               <h3 className="text-xl font-bold text-white text-center">LO MÁS RECIENTE DE LA RED</h3>
             </div>
@@ -666,7 +666,7 @@ export default async function Home() {
             <p className="text-base">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
           </div>
 
-          <div className="w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex flex-col justify-center items-center text-[#717171] p-6 text-center">
+          <div className="hidden md:flex w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex-col justify-center items-center text-[#717171] p-6 text-center">
             <h3 className="text-xl font-bold mb-2 text-[#9F9F9F]">Anuncio 1</h3>
             <p className="text-base">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
           </div>

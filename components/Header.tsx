@@ -50,7 +50,7 @@ export default function Header() {
             <div className="bg-[#FF0000] text-white py-2">
                 <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
                     {/* Date and Socials */}
-                    <div className="flex items-center gap-4 text-lg md:text-xl font-normal">
+                    <div className="flex items-center gap-4 text-lg md:text-xl font-normal w-full md:w-auto justify-between md:justify-start">
                         <div className="flex gap-2 items-center">
                             {/* Home Icon SVG from design */}
                             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -58,11 +58,18 @@ export default function Header() {
                             </svg>
                             <span className="capitalize">{new Date().toLocaleDateString('es-GT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
+                        {/* Mobile Menu Button - Moved to Top Bar */}
+                        <button
+                            className="md:hidden text-white hover:bg-red-700 rounded-lg transition-colors p-1"
+                            onClick={toggleMenu}
+                        >
+                            <Menu size={28} />
+                        </button>
                     </div>
 
                     {/* Currency Rate */}
                     {exchangeRate && (
-                        <div className="flex items-center gap-2 text-lg font-normal">
+                        <div className="hidden md:flex items-center gap-2 text-lg font-normal">
                             <span>Tasa de Cambio Banguat - </span>
                             <span className="font-bold">Compra:</span>
                             <span>Q{exchangeRate.buy.toFixed(2)}</span>
@@ -107,13 +114,6 @@ export default function Header() {
                         </div>
                     </form>
 
-                    {/* Mobile Menu Button - Hidden on Desktop */}
-                    <button
-                        className="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors absolute top-6 right-4"
-                        onClick={toggleMenu}
-                    >
-                        <Menu size={28} />
-                    </button>
                 </div>
             </div>
 
