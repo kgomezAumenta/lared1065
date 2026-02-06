@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { helveticaNeue } from "./fonts";
 import "./globals.css";
 import { ApolloWrapper } from "@/components/ApolloWrapper";
 import Header from "@/components/Header";
@@ -30,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${helveticaNeue.variable} antialiased font-helvetica`}
       >
         <ApolloWrapper>
           <div className="min-h-screen flex flex-col bg-white text-gray-900">

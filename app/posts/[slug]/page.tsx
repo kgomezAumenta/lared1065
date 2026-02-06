@@ -179,7 +179,8 @@ export default async function PostPage({
                     </div>
 
                     {/* Title */}
-                    <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-black">
+                    {/* Title - Reduced to 36px (4xl) per request */}
+                    <h1 className="text-3xl md:text-4xl font-bold mb-6 leading-tight text-black">
                         {post.title}
                     </h1>
 

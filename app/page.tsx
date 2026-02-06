@@ -226,8 +226,8 @@ export default async function Home() {
   const isRecentBoxItem = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    // 24 hour window
-    const timeLimit = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    // 3 hour window (Strict filtering per user request)
+    const timeLimit = new Date(now.getTime() - 3 * 60 * 60 * 1000);
     return date >= timeLimit;
   };
 

@@ -85,11 +85,11 @@ export default function BreakingNews({ posts, customItems = [] }: BreakingNewsPr
     }, [posts, customItems]);
 
     return (
-        <div className="bg-[#111111] text-white py-3 border-b border-red-600 overflow-hidden">
+        <div className="bg-[#111111] text-white py-1 border-b border-red-600 overflow-hidden">
             <div className="container mx-auto px-4 flex items-center">
                 <div className="flex items-center gap-2 shrink-0 mr-6 z-10 bg-[#111111] pr-4">
-                    <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.8)]" />
-                    <h2 className="font-extrabold text-lg italic uppercase tracking-wider text-white">
+                    <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.8)]" />
+                    <h2 className="font-extrabold text-sm italic uppercase tracking-wider text-white">
                         AHORA
                     </h2>
                 </div>
@@ -107,17 +107,17 @@ export default function BreakingNews({ posts, customItems = [] }: BreakingNewsPr
 
                             return (
                                 <div key={item.id} className="flex items-center gap-3 shrink-0 whitespace-nowrap">
-                                    <span className="text-xs font-mono text-red-500 font-bold">
+                                    <span className="text-[10px] font-mono text-red-500 font-bold">
                                         {itemTime}
                                     </span>
                                     {isCustom && !(item as BreakingItem).link ? (
-                                        <span className="text-sm font-bold text-gray-200">
+                                        <span className="text-xs font-bold text-gray-200">
                                             {item.title}
                                         </span>
                                     ) : (
                                         <Link
                                             href={(item as any).link || `/posts/${(item as Post).slug}`}
-                                            className="text-sm font-bold text-gray-200 hover:text-white hover:underline transition-colors decoration-red-600 underline-offset-4"
+                                            className="text-xs font-bold text-gray-200 hover:text-white hover:underline transition-colors decoration-red-600 underline-offset-4"
                                         >
                                             {item.title}
                                         </Link>

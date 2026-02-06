@@ -229,13 +229,7 @@ export default async function CategoryPage({
 
     return (
         <main className="container mx-auto px-4 py-8 pb-32">
-            {/* Header with Underline */}
-            <div className="mb-6 relative">
-                <h1 className="text-2xl font-bold uppercase text-gray-900 leading-tight">
-                    {title}
-                </h1>
-                <div className="w-full h-[2px] bg-black mt-2 max-w-full"></div>
-            </div>
+
 
             {/* Advertising Banner (From Figma) */}
             <AdvertisingBanner className="rounded-[15px] mb-12 shadow-sm min-h-[150px]" />
@@ -243,6 +237,14 @@ export default async function CategoryPage({
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
                 {/* Main Content - 3 columns */}
                 <div className="lg:col-span-3">
+                    {/* Header with Underline - Moved here per user request */}
+                    <div className="mb-8 relative">
+                        <h1 className="text-3xl font-black uppercase text-gray-900 leading-tight tracking-tight">
+                            {title}
+                        </h1>
+                        <div className="w-full h-[3px] bg-black mt-3 max-w-full"></div>
+                    </div>
+
                     {/* Posts Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-8">
                         {gridItems.length > 0 ? (
