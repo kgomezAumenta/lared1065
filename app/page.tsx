@@ -6,6 +6,7 @@ import { ArrowRight, Bookmark, Clock, Search, Menu } from "lucide-react";
 import TopicRow from "@/components/TopicRow";
 import BreakingNews from "@/components/BreakingNews";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
+import { getAdByGroup } from "@/lib/advanced-ads"; // Import Ad Service
 
 interface Post {
   id: string;
@@ -86,32 +87,44 @@ async function getData() {
       ahoraPosts: posts(first: 10) {
         nodes { id title slug date excerpt categories { nodes { name slug } } }
       }
-      dynamicCategory: category(id: "internacionales", idType: SLUG) {
-        name
-      }
-      # Fetch ACF Fields from the 'Ahora' Page using Database ID 649987
-      ahoraPage: page(id: "649987", idType: DATABASE_ID) {
-        newsList { 
-           # Nested 'repetidor' field as discovered in inspection
-           repetidor {
-             newsTitle
-             newsUrl {
-               url
-             }
-             newsTimestamp 
-           }
-        }
-      }
+      # Remove old ACF Ad query - now using REST API
+      # homeSettings: page(id: "/", idType: URI) { ... }
     }
   `;
 
   try {
-    const res = await fetch("https://www.lared1061.com/graphql", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
-      next: { revalidate: 0 }, // Disable cache
-    });
+    // Parallel Fetch: GraphQL + Advanced Ads REST API
+    // ID Mappings provided by user:
+    // Headless Top: 37291
+    // Headless Nacionales: 37292
+    // Headless Internacionales: 37293
+    // Headless Sidebar 1 (Rojo): 37294
+    // Headless Sidebar 2 (Gris): 37295
+
+    const adPromises = [
+      getAdByGroup(37291), // Top
+      getAdByGroup(37292), // Nacionales
+      getAdByGroup(37293), // Internacionales
+      getAdByGroup(37294), // Sidebar 1
+      getAdByGroup(37295), // Sidebar 2
+    ];
+
+    const [
+      res,
+      adTop,
+      adNacionales,
+      adInternacionales,
+      adSidebarRed,
+      adSidebarGrey
+    ] = await Promise.all([
+      fetch("https://www.lared1061.com/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+        next: { revalidate: 0 }, // Disable cache for news
+      }),
+      ...adPromises
+    ]);
 
     const json = await res.json();
 
@@ -144,6 +157,14 @@ async function getData() {
       economiaPosts: data?.economia?.nodes || [],
       ahoraPosts: data?.ahoraPosts?.nodes || [],
       acfBreakingNews: data?.ahoraPage?.newsList?.repetidor || [],
+      // Pass REST API Ads
+      ads: {
+        anuncioBannerTop: adTop,
+        anuncioNacionales: adNacionales,
+        anuncioInternacionales: adInternacionales,
+        anuncioSidebarRojo: adSidebarRed,
+        anuncioSidebarGris: adSidebarGrey
+      },
       dynamicCategoryName: data?.dynamicCategory?.name || "Internacionales",
       categorySnapshots: [
         data?.nacionales?.nodes[0],
@@ -169,6 +190,7 @@ async function getData() {
       economiaPosts: [],
       ahoraPosts: [], // Fallback
       acfBreakingNews: [],
+      ads: null,
       dynamicCategoryName: "Noticias",
       categorySnapshots: [],
     };
@@ -189,7 +211,8 @@ export default async function Home() {
     ahoraPosts,
     acfBreakingNews,
     dynamicCategoryName,
-    categorySnapshots
+    categorySnapshots,
+    ads
   } = await getData();
 
   // 1. Determine Featured/Hero Post
@@ -272,8 +295,8 @@ export default async function Home() {
   return (
     <main className="container mx-auto px-4 py-6 pb-32">
       {/* Top Advertisement "Anuncio 1" */}
-      <div className="mb-8 flex justify-center">
-        <AdvertisingBanner />
+      <div className="mb-8 flex justify-center w-full">
+        <AdvertisingBanner adData={ads?.anuncioBannerTop} placeholderText="Anuncio 1" />
       </div>
 
       {/* Hero Section (Single Featured Post) */}
@@ -351,83 +374,96 @@ export default async function Home() {
               <div className="h-[2px] bg-black w-full" />
             </div>
 
-            <div className="flex flex-col md:flex-row gap-8">
-              {/* Post 1 */}
-              {nacionalesPosts[0] && (
-                <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
-                  <Link href={`/posts/${nacionalesPosts[0].slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
-                    {nacionalesPosts[0].featuredImage?.node?.sourceUrl && (
-                      <Image
-                        src={nacionalesPosts[0].featuredImage.node.sourceUrl}
-                        alt={nacionalesPosts[0].title}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
-                  </Link>
-                  <div className="self-start">
-                    <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
-                      NACIONALES
-                    </span>
+            {/* Nacionales Section - 2 Rows */}
+            <div className="flex flex-col gap-8">
+              {/* Row 1: Post 1, Post 2, Ad */}
+              <div className="flex flex-col md:flex-row gap-8">
+                {nacionalesPosts.slice(0, 2).map((post: Post) => (
+                  <div key={post.id} className="flex-1 flex flex-col gap-3 min-w-[280px]">
+                    <Link href={`/posts/${post.slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
+                      {post.featuredImage?.node?.sourceUrl && (
+                        <Image
+                          src={post.featuredImage.node.sourceUrl}
+                          alt={post.title}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
+                    </Link>
+                    <div className="self-start">
+                      <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
+                        NACIONALES
+                      </span>
+                    </div>
+                    <Link href={`/posts/${post.slug}`} className="group">
+                      <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                        {post.title}
+                      </h3>
+                    </Link>
+                    <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
+                      {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
+                    </p>
+                    <div className="flex justify-between items-center w-full mt-1">
+                      <span className="text-black text-xs font-normal">Redacción</span>
+                      <span className="text-[#9F9F9F] text-xs font-normal">
+                        {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
                   </div>
-                  <Link href={`/posts/${nacionalesPosts[0].slug}`} className="group">
-                    {/* Title Reduced from xl to lg */}
-                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
-                      {nacionalesPosts[0].title}
-                    </h3>
-                  </Link>
-                  {/* Excerpt Reduced from base to sm */}
-                  <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
-                    {stripHtml(nacionalesPosts[0].excerpt) || "Lorem ipsum dolor sit amet..."}
-                  </p>
-                  <div className="flex justify-between items-center w-full mt-1">
-                    <span className="text-black text-xs font-normal">Redacción</span>
-                    <span className="text-[#9F9F9F] text-xs font-normal">
-                      {new Date(nacionalesPosts[0].date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
-                </div>
-              )}
+                ))}
 
-              {/* Post 2 */}
-              {nacionalesPosts[1] && (
-                <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
-                  <Link href={`/posts/${nacionalesPosts[1].slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
-                    {nacionalesPosts[1].featuredImage?.node?.sourceUrl && (
-                      <Image
-                        src={nacionalesPosts[1].featuredImage.node.sourceUrl}
-                        alt={nacionalesPosts[1].title}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
-                  </Link>
-                  <div className="self-start">
-                    <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
-                      NACIONALES
-                    </span>
-                  </div>
-                  <Link href={`/posts/${nacionalesPosts[1].slug}`} className="group">
-                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
-                      {nacionalesPosts[1].title}
-                    </h3>
-                  </Link>
-                  <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
-                    {stripHtml(nacionalesPosts[1].excerpt) || "Lorem ipsum dolor sit amet..."}
-                  </p>
-                  <div className="flex justify-between items-center w-full mt-1">
-                    <span className="text-black text-xs font-normal">Redacción</span>
-                    <span className="text-[#9F9F9F] text-xs font-normal">
-                      {new Date(nacionalesPosts[1].date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
+                {/* Ad Slot (3rd Column in Row 1) */}
+                <div className="flex-1 min-w-[280px]">
+                  <AdvertisingBanner
+                    adData={ads?.anuncioNacionales}
+                    placeholderText="Anuncio Nacionales"
+                    className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
+                  />
                 </div>
-              )}
-
-              {/* Ad Slot (3rd Column in this row) */}
-              <div className="flex-1 min-w-[280px]">
-                <AdvertisingBanner className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]" />
               </div>
+
+              {/* Row 2: Post 3, Post 4, Post 5 */}
+              {nacionalesPosts.length > 2 && (
+                <div className="flex flex-col md:flex-row gap-8">
+                  {nacionalesPosts.slice(2, 5).map((post: Post) => (
+                    <div key={post.id} className="flex-1 flex flex-col gap-3 min-w-[280px]">
+                      <Link href={`/posts/${post.slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
+                        {post.featuredImage?.node?.sourceUrl && (
+                          <Image
+                            src={post.featuredImage.node.sourceUrl}
+                            alt={post.title}
+                            fill
+                            className="object-cover"
+                          />
+                        )}
+                      </Link>
+                      <div className="self-start">
+                        <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
+                          NACIONALES
+                        </span>
+                      </div>
+                      <Link href={`/posts/${post.slug}`} className="group">
+                        <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                          {post.title}
+                        </h3>
+                      </Link>
+                      <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
+                        {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
+                      </p>
+                      <div className="flex justify-between items-center w-full mt-1">
+                        <span className="text-black text-xs font-normal">Redacción</span>
+                        <span className="text-[#9F9F9F] text-xs font-normal">
+                          {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Fill empty slots if less than 3 posts in row 2 */}
+                  {nacionalesPosts.slice(2, 5).length < 3 && Array.from({ length: 3 - nacionalesPosts.slice(2, 5).length }).map((_, i) => (
+                    <div key={`empty-${i}`} className="flex-1 hidden md:block"></div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
@@ -443,79 +479,94 @@ export default async function Home() {
               <div className="h-[2px] bg-black w-full" />
             </div>
 
-            <div className="flex flex-col md:flex-row gap-8">
-              {/* Post 1 */}
-              {internacionalesPosts[0] && (
-                <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
-                  <Link href={`/posts/${internacionalesPosts[0].slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
-                    {internacionalesPosts[0].featuredImage?.node?.sourceUrl && (
-                      <Image
-                        src={internacionalesPosts[0].featuredImage.node.sourceUrl}
-                        alt={internacionalesPosts[0].title}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
-                  </Link>
-                  <div className="self-start">
-                    <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
-                      INTERNACIONAL
-                    </span>
+            {/* Internacionales Section - 2 Rows */}
+            <div className="flex flex-col gap-8">
+              {/* Row 1: Post 1, Post 2, Ad */}
+              <div className="flex flex-col md:flex-row gap-8">
+                {internacionalesPosts.slice(0, 2).map((post: Post) => (
+                  <div key={post.id} className="flex-1 flex flex-col gap-3 min-w-[280px]">
+                    <Link href={`/posts/${post.slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
+                      {post.featuredImage?.node?.sourceUrl && (
+                        <Image
+                          src={post.featuredImage.node.sourceUrl}
+                          alt={post.title}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
+                    </Link>
+                    <div className="self-start">
+                      <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
+                        INTERNACIONAL
+                      </span>
+                    </div>
+                    <Link href={`/posts/${post.slug}`} className="group">
+                      <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                        {post.title}
+                      </h3>
+                    </Link>
+                    <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
+                      {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
+                    </p>
+                    <div className="flex justify-between items-center w-full mt-1">
+                      <span className="text-black text-xs font-normal">Redacción</span>
+                      <span className="text-[#9F9F9F] text-xs font-normal">
+                        {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
                   </div>
-                  <Link href={`/posts/${internacionalesPosts[0].slug}`} className="group">
-                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
-                      {internacionalesPosts[0].title}
-                    </h3>
-                  </Link>
-                  <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
-                    {stripHtml(internacionalesPosts[0].excerpt) || "Lorem ipsum dolor sit amet..."}
-                  </p>
-                  <div className="flex justify-between items-center w-full mt-1">
-                    <span className="text-black text-xs font-normal">Redacción</span>
-                    <span className="text-[#9F9F9F] text-xs font-normal">
-                      {new Date(internacionalesPosts[0].date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
-                </div>
-              )}
+                ))}
 
-              {/* Ad Banner Middle */}
-              <div className="flex-1 min-w-[280px]">
-                <AdvertisingBanner className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]" />
+                {/* Ad Slot (3rd Column in Row 1) */}
+                <div className="flex-1 min-w-[280px]">
+                  <AdvertisingBanner
+                    adData={ads?.anuncioInternacionales}
+                    placeholderText="Anuncio Inter"
+                    className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
+                  />
+                </div>
               </div>
 
-              {/* Post 2 */}
-              {internacionalesPosts[1] && (
-                <div className="flex-1 flex flex-col gap-3 min-w-[280px]">
-                  <Link href={`/posts/${internacionalesPosts[1].slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
-                    {internacionalesPosts[1].featuredImage?.node?.sourceUrl && (
-                      <Image
-                        src={internacionalesPosts[1].featuredImage.node.sourceUrl}
-                        alt={internacionalesPosts[1].title}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
-                  </Link>
-                  <div className="self-start">
-                    <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
-                      INTERNACIONAL
-                    </span>
-                  </div>
-                  <Link href={`/posts/${internacionalesPosts[1].slug}`} className="group">
-                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
-                      {internacionalesPosts[1].title}
-                    </h3>
-                  </Link>
-                  <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
-                    {stripHtml(internacionalesPosts[1].excerpt) || "Lorem ipsum dolor sit amet..."}
-                  </p>
-                  <div className="flex justify-between items-center w-full mt-1">
-                    <span className="text-black text-xs font-normal">Redacción</span>
-                    <span className="text-[#9F9F9F] text-xs font-normal">
-                      {new Date(internacionalesPosts[1].date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
+              {/* Row 2: Post 3, Post 4, Post 5 */}
+              {internacionalesPosts.length > 2 && (
+                <div className="flex flex-col md:flex-row gap-8">
+                  {internacionalesPosts.slice(2, 5).map((post: Post) => (
+                    <div key={post.id} className="flex-1 flex flex-col gap-3 min-w-[280px]">
+                      <Link href={`/posts/${post.slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
+                        {post.featuredImage?.node?.sourceUrl && (
+                          <Image
+                            src={post.featuredImage.node.sourceUrl}
+                            alt={post.title}
+                            fill
+                            className="object-cover"
+                          />
+                        )}
+                      </Link>
+                      <div className="self-start">
+                        <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
+                          INTERNACIONAL
+                        </span>
+                      </div>
+                      <Link href={`/posts/${post.slug}`} className="group">
+                        <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                          {post.title}
+                        </h3>
+                      </Link>
+                      <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
+                        {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
+                      </p>
+                      <div className="flex justify-between items-center w-full mt-1">
+                        <span className="text-black text-xs font-normal">Redacción</span>
+                        <span className="text-[#9F9F9F] text-xs font-normal">
+                          {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Fill empty slots */}
+                  {internacionalesPosts.slice(2, 5).length < 3 && Array.from({ length: 3 - internacionalesPosts.slice(2, 5).length }).map((_, i) => (
+                    <div key={`empty-${i}`} className="flex-1 hidden md:block"></div>
+                  ))}
                 </div>
               )}
             </div>
@@ -695,17 +746,22 @@ export default async function Home() {
           </div>
 
           {/* Sidebar Ads */}
-          <div className="w-full h-[450px] bg-[#FF0000] rounded-[15px] flex flex-col justify-center items-center text-white p-6 text-center">
-            <h3 className="text-xl font-bold mb-2">Anuncio 1</h3>
-            <p className="text-base">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
-          </div>
+          {/* 1. Sidebar Rojo */}
+          <AdvertisingBanner
+            adData={ads?.anuncioSidebarRojo}
+            placeholderText="Anuncio Sidebar 1"
+            className="w-full h-[450px] bg-[#FF0000] rounded-[15px] flex flex-col justify-center items-center text-white p-6 text-center"
+          />
 
-          <div className="hidden md:flex w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex-col justify-center items-center text-[#717171] p-6 text-center">
-            <h3 className="text-xl font-bold mb-2 text-[#9F9F9F]">Anuncio 1</h3>
-            <p className="text-base">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
-          </div>
+          {/* 2. Sidebar Gris (Long) */}
+          <AdvertisingBanner
+            adData={ads?.anuncioSidebarGris}
+            placeholderText="Anuncio Sidebar 2"
+            className="hidden md:flex w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex-col justify-center items-center text-[#717171] p-6 text-center"
+          />
 
         </div>
+
 
       </div>
     </main>
