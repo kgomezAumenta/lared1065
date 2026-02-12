@@ -71,6 +71,7 @@ async function getData(slug: string) {
         tags {
             nodes {
                 slug
+                name
             }
         }
         featuredImage {
@@ -120,8 +121,10 @@ async function getData(slug: string) {
         let relatedPosts = [];
 
         if (post && post.tags?.nodes?.length > 0) {
-            const tagSlugs = post.tags.nodes.map((t: any) => t.slug);
-            console.log("DEBUG: Current Post Tags:", tagSlugs);
+            // Use only the FIRST tag for more focused relation
+            const firstTagSlug = post.tags.nodes[0].slug;
+            const tagSlugs = [firstTagSlug];
+            console.log("DEBUG: Related News using first tag:", firstTagSlug);
 
             const relatedQuery = `
             query GetRelatedPosts($tagSlugs: [String]) {
@@ -270,6 +273,21 @@ export default async function PostPage({
                             />
                         </div>
                     )}
+
+                    {/* Tags List */}
+                    {post.tags?.nodes?.length ? (
+                        <div className="flex flex-wrap gap-2 mb-8">
+                            {post.tags.nodes.map((tag: any) => (
+                                <Link
+                                    key={tag.slug}
+                                    href={`/search?q=${encodeURIComponent(tag.name)}`}
+                                    className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold uppercase hover:bg-[#E40000] hover:text-white transition-colors"
+                                >
+                                    {tag.name}
+                                </Link>
+                            ))}
+                        </div>
+                    ) : null}
 
                     {/* Content */}
                     <div
