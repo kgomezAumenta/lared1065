@@ -53,6 +53,12 @@ export default function RootLayout({
           src="https://www.lared1061.com/wp-includes/js/wp-embed.min.js"
           strategy="lazyOnload"
         />
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6134329722127197"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

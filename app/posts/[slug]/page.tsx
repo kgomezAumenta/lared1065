@@ -161,9 +161,8 @@ export default async function PostPage({
         <main className="container mx-auto px-4 py-8 pb-32">
 
             {/* Top Red Ad Banner */}
-            <div className="w-full bg-[#FF0000] rounded-[15px] flex flex-col justify-center items-center gap-3 py-10 mb-12 text-center text-white p-6">
-                <h3 className="text-2xl font-bold">Anuncio 1</h3>
-                <p className="text-xl max-w-4xl">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.</p>
+            <div className="mb-12">
+                <AdvertisingBanner slotId="2850891862" placeholderText="Anuncio Top" />
             </div>
 
             <div className="flex flex-col xl:flex-row gap-12 justify-center items-start">
@@ -251,10 +250,11 @@ export default async function PostPage({
                     </div>
 
                     {/* Sidebar Ad Vertical - Grey */}
-                    <div className="w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex flex-col justify-center items-center text-[#717171] p-6 text-center text-xl">
-                        <h3 className="font-bold mb-2 text-[#9F9F9F]">Anuncio 1</h3>
-                        <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
-                    </div>
+                    <AdvertisingBanner
+                        slotId="4243864586"
+                        placeholderText="Anuncio Sidebar"
+                        className="w-full min-h-[600px] bg-[#F0F0F0] rounded-[15px]"
+                    />
 
                 </aside>
 

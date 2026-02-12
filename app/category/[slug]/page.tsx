@@ -163,8 +163,8 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
 function insertAds(posts: Post[]): GridItem[] {
     const items: GridItem[] = [];
     const adsConfiguration = [
-        { index: 1, id: 'ad-1', title: 'Anuncio 1', content: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.' },
-        { index: 8, id: 'ad-2', title: 'Anuncio 1', content: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.' }
+        { index: 1, id: 'ad-1' },
+        { index: 8, id: 'ad-2' }
     ];
 
     let currentPost = 0;
@@ -232,7 +232,7 @@ export default async function CategoryPage({
 
 
             {/* Advertising Banner (From Figma) */}
-            <AdvertisingBanner className="rounded-[15px] mb-12 shadow-sm min-h-[150px]" />
+            <AdvertisingBanner slotId="2850891862" className="rounded-[15px] mb-12 shadow-sm min-h-[150px]" />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
                 {/* Main Content - 3 columns */}
@@ -252,7 +252,7 @@ export default async function CategoryPage({
                                 if (item.type === 'ad') {
                                     return (
                                         <div key={item.id} className="h-full">
-                                            <AdvertisingBanner className="h-full rounded-[15px] px-6 py-8" />
+                                            <AdvertisingBanner slotId="1502151177" className="h-full rounded-[15px] px-6 py-8" />
                                         </div>
                                     );
                                 }
@@ -377,7 +377,7 @@ export default async function CategoryPage({
                     </div>
 
                     {/* Ad Box - LARGE RED BOX below sidebar list */}
-                    <AdvertisingBanner className="rounded-[15px] px-6 py-8 min-h-[300px]" />
+                    <AdvertisingBanner slotId="1330868584" className="rounded-[15px] px-6 py-8 min-h-[300px]" />
 
                     {/* Otras Secciones - Black Box with Red Top */}
                     <div className="bg-black rounded-t-[20px] overflow-hidden">

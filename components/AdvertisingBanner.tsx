@@ -5,86 +5,59 @@ import Image from "next/image";
 import Link from "next/link";
 
 interface AdvertisingBannerProps {
-    className?: string; // Allow custom classes for positioning/margins
-    adData?: {
-        content?: string | { rendered: string }; // REST API content
-        imagen?: { sourceUrl: string; altText?: string }; // Spanish field names from ACF
-        enlace?: string;
-        codigo?: string;
-    } | null;
+    className?: string;
+    minHeight?: string;
+    slotId?: string;       // Google AdSense Data Slot ID
+    format?: "auto" | "fluid" | "rectangle" | "vertical" | "horizontal"; // AdSense Data Format
+    responsive?: "true" | "false"; // Full Width Responsive
     placeholderText?: string;
 }
 
-const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({ className, adData, placeholderText = "Anuncio" }) => {
+const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
+    className,
+    minHeight = "280px",
+    slotId,
+    format = "auto",
+    responsive = "true",
+    placeholderText = "Anuncio"
+}) => {
+    // Determine development mode to show placeholder
+    const isDev = process.env.NODE_ENV === 'development';
 
-    // 1. Dynamic Ad Content (ACF Provided)
-    if (adData) {
-        // Option A: Raw HTML Content (From Advanced Ads REST API)
-        if (adData.content) {
-            // Handle both direct string "content" and WP-style "content: { rendered: ... }"
-            const htmlContent = typeof adData.content === 'object' && (adData.content as any).rendered
-                ? (adData.content as any).rendered
-                : adData.content;
-
-            return (
-                <div className={`${className} overflow-hidden`} dangerouslySetInnerHTML={{ __html: htmlContent }} />
-            );
+    React.useEffect(() => {
+        try {
+            // Push the ad to Google's queue
+            // @ts-ignore
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (err) {
+            console.error("AdSense Error:", err);
         }
-        // Option A: Script/Code (Google Ads, etc)
-        if (adData.codigo) {
-            return (
-                <div className={`${className} overflow-hidden`} dangerouslySetInnerHTML={{ __html: adData.codigo }} />
-            );
-        }
+    }, [slotId]); // Re-run if slotId changes
 
-        // Option B: Image Banner
-        // Check both direct structure and nested node structure (Edge case)
-        const imageSource = adData.imagen?.sourceUrl || (adData.imagen as any)?.node?.sourceUrl;
-        const imageAlt = adData.imagen?.altText || (adData.imagen as any)?.node?.altText || placeholderText;
-
-        if (imageSource) {
-            const Content = (
-                <div className={`relative w-full h-full min-h-[100px] ${className}`}>
-                    <Image
-                        src={imageSource}
-                        alt={imageAlt}
-                        fill
-                        className="object-cover rounded-[inherit]" // Inherit rounding from parent
-                        unoptimized // often needed for external ad servers or if reliable sizing is tricky
-                    />
-                </div>
-            );
-
-            if (adData.enlace) {
-                return (
-                    <Link href={adData.enlace} target="_blank" rel="noopener noreferrer" className={`block w-full h-full ${className}`}>
-                        {Content}
-                    </Link>
-                );
-            }
-            return Content;
-        }
-    }
-
-    // 2. Default Static Placeholder (If no data)
-    // If className is provided, use it (plus the base background).
-    // If not, use the default centered layout.
-    const containerClasses = className
-        ? `w-full bg-[#E40000] text-white flex flex-col justify-center items-center text-center p-4 min-h-[150px] ${className}`
-        : `w-full bg-[#E40000] py-8 flex items-center justify-center text-white min-h-[150px]`;
+    // Container styles
+    // If className provided, use it. Else use default layout.
+    const containerClass = className
+        ? `${className} overflow-hidden bg-gray-100 flex justify-center items-center`
+        : `w-full bg-gray-100 py-4 flex items-center justify-center min-h-[${minHeight}]`;
 
     return (
-        <div className={containerClasses}>
-            <div className="flex flex-col gap-2">
-                <h3 className="text-xl font-bold uppercase tracking-widest text-center">
-                    {placeholderText}
-                </h3>
-                {placeholderText === "Anuncio 1" && (
-                    <p className="text-sm opacity-80 font-normal">
-                        Espacio Publicitario
-                    </p>
-                )}
-            </div>
+        <div className={containerClass}>
+            {/* If slotId is present, render the ad unit */}
+            {slotId ? (
+                <ins className="adsbygoogle"
+                    style={{ display: 'block', width: '100%', height: '100%' }}
+                    data-ad-client="ca-pub-6134329722127197"
+                    data-ad-slot={slotId}
+                    data-ad-format={format}
+                    data-full-width-responsive={responsive}
+                />
+            ) : (
+                // Fallback / Placeholder
+                <div className="flex flex-col gap-2 items-center text-gray-400">
+                    <span className="text-xs uppercase tracking-widest font-bold">{placeholderText}</span>
+                    {!slotId && <span className="text-[10px] text-red-500">(Falta Slot ID)</span>}
+                </div>
+            )}
         </div>
     );
 };

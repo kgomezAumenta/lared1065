@@ -6,7 +6,7 @@ import { ArrowRight, Bookmark, Clock, Search, Menu } from "lucide-react";
 import TopicRow from "@/components/TopicRow";
 import BreakingNews from "@/components/BreakingNews";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
-import { getAdByGroup } from "@/lib/advanced-ads"; // Import Ad Service
+
 
 interface Post {
   id: string;
@@ -93,38 +93,13 @@ async function getData() {
   `;
 
   try {
-    // Parallel Fetch: GraphQL + Advanced Ads REST API
-    // ID Mappings provided by user:
-    // Headless Top: 37291
-    // Headless Nacionales: 37292
-    // Headless Internacionales: 37293
-    // Headless Sidebar 1 (Rojo): 37294
-    // Headless Sidebar 2 (Gris): 37295
-
-    const adPromises = [
-      getAdByGroup(37291), // Top
-      getAdByGroup(37292), // Nacionales
-      getAdByGroup(37293), // Internacionales
-      getAdByGroup(37294), // Sidebar 1
-      getAdByGroup(37295), // Sidebar 2
-    ];
-
-    const [
-      res,
-      adTop,
-      adNacionales,
-      adInternacionales,
-      adSidebarRed,
-      adSidebarGrey
-    ] = await Promise.all([
-      fetch("https://www.lared1061.com/graphql", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
-        next: { revalidate: 0 }, // Disable cache for news
-      }),
-      ...adPromises
-    ]);
+    // Parallel Fetch: GraphQL only (Ads are client-side now)
+    const res = await fetch("https://www.lared1061.com/graphql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+      next: { revalidate: 0 }, // Disable cache for news
+    });
 
     const json = await res.json();
 
@@ -157,14 +132,7 @@ async function getData() {
       economiaPosts: data?.economia?.nodes || [],
       ahoraPosts: data?.ahoraPosts?.nodes || [],
       acfBreakingNews: data?.ahoraPage?.newsList?.repetidor || [],
-      // Pass REST API Ads
-      ads: {
-        anuncioBannerTop: adTop,
-        anuncioNacionales: adNacionales,
-        anuncioInternacionales: adInternacionales,
-        anuncioSidebarRojo: adSidebarRed,
-        anuncioSidebarGris: adSidebarGrey
-      },
+
       dynamicCategoryName: data?.dynamicCategory?.name || "Internacionales",
       categorySnapshots: [
         data?.nacionales?.nodes[0],
@@ -190,7 +158,7 @@ async function getData() {
       economiaPosts: [],
       ahoraPosts: [], // Fallback
       acfBreakingNews: [],
-      ads: null,
+
       dynamicCategoryName: "Noticias",
       categorySnapshots: [],
     };
@@ -212,7 +180,7 @@ export default async function Home() {
     acfBreakingNews,
     dynamicCategoryName,
     categorySnapshots,
-    ads
+
   } = await getData();
 
   // 1. Determine Featured/Hero Post
@@ -296,7 +264,7 @@ export default async function Home() {
     <main className="container mx-auto px-4 py-6 pb-32">
       {/* Top Advertisement "Anuncio 1" */}
       <div className="mb-8 flex justify-center w-full">
-        <AdvertisingBanner adData={ads?.anuncioBannerTop} placeholderText="Anuncio 1" />
+        <AdvertisingBanner slotId="2850891862" placeholderText="Anuncio 1" />
       </div>
 
       {/* Hero Section (Single Featured Post) */}
@@ -415,7 +383,7 @@ export default async function Home() {
                 {/* Ad Slot (3rd Column in Row 1) */}
                 <div className="flex-1 min-w-[280px]">
                   <AdvertisingBanner
-                    adData={ads?.anuncioNacionales}
+                    slotId="4048423466"
                     placeholderText="Anuncio Nacionales"
                     className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
                   />
@@ -520,7 +488,7 @@ export default async function Home() {
                 {/* Ad Slot (3rd Column in Row 1) */}
                 <div className="flex-1 min-w-[280px]">
                   <AdvertisingBanner
-                    adData={ads?.anuncioInternacionales}
+                    slotId="1502151177"
                     placeholderText="Anuncio Inter"
                     className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
                   />
@@ -748,14 +716,14 @@ export default async function Home() {
           {/* Sidebar Ads */}
           {/* 1. Sidebar Rojo */}
           <AdvertisingBanner
-            adData={ads?.anuncioSidebarRojo}
+            slotId="1330868584"
             placeholderText="Anuncio Sidebar 1"
             className="w-full h-[450px] bg-[#FF0000] rounded-[15px] flex flex-col justify-center items-center text-white p-6 text-center"
           />
 
           {/* 2. Sidebar Gris (Long) */}
           <AdvertisingBanner
-            adData={ads?.anuncioSidebarGris}
+            slotId="4243864586"
             placeholderText="Anuncio Sidebar 2"
             className="hidden md:flex w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex-col justify-center items-center text-[#717171] p-6 text-center"
           />
