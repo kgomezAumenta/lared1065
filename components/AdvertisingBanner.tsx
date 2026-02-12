@@ -24,7 +24,15 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
     // Determine development mode to show placeholder
     const isDev = process.env.NODE_ENV === 'development';
 
+    const adRef = React.useRef<HTMLDivElement>(null);
+
     React.useEffect(() => {
+        // Check if the element is visible (width > 0)
+        // This prevents "No slot size for availableWidth=0" error when component is rendered but hidden (e.g. mobile sidebar)
+        if (adRef.current && adRef.current.offsetWidth === 0) {
+            return;
+        }
+
         try {
             // Push the ad to Google's queue
             // @ts-ignore
@@ -41,7 +49,7 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
         : `w-full bg-gray-100 py-4 flex items-center justify-center min-h-[${minHeight}]`;
 
     return (
-        <div className={containerClass}>
+        <div ref={adRef} className={containerClass}>
             {/* If slotId is present, render the ad unit */}
             {slotId ? (
                 <ins className="adsbygoogle"

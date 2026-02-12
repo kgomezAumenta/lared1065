@@ -32,8 +32,8 @@ interface Post {
 interface AdItem {
     id: string;
     type: 'ad';
-    title: string;
-    content: string;
+    title?: string;
+    content?: string;
 }
 
 type GridItem = Post | AdItem;
@@ -162,9 +162,9 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
 // Helper to inject ads at specific positions
 function insertAds(posts: Post[]): GridItem[] {
     const items: GridItem[] = [];
-    const adsConfiguration = [
-        { index: 1, id: 'ad-1' },
-        { index: 8, id: 'ad-2' }
+    const adsConfiguration: (AdItem & { index: number })[] = [
+        { index: 1, id: 'ad-1', type: 'ad' },
+        { index: 8, id: 'ad-2', type: 'ad' }
     ];
 
     let currentPost = 0;
@@ -173,7 +173,7 @@ function insertAds(posts: Post[]): GridItem[] {
     for (let i = 0; i < maxItems; i++) {
         const ad = adsConfiguration.find(a => a.index === i);
         if (ad) {
-            items.push({ type: 'ad', ...ad });
+            items.push(ad);
         } else {
             if (currentPost < posts.length) {
                 items.push({ type: 'post', ...posts[currentPost] });
@@ -232,7 +232,7 @@ export default async function CategoryPage({
 
 
             {/* Advertising Banner (From Figma) */}
-            <AdvertisingBanner slotId="2850891862" className="rounded-[15px] mb-12 shadow-sm min-h-[150px]" />
+            <AdvertisingBanner slotId="2850891862" className="rounded-[15px] mb-12 shadow-sm min-h-[150px] w-full" />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
                 {/* Main Content - 3 columns */}
