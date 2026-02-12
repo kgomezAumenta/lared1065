@@ -68,16 +68,21 @@ async function getData(slug: string) {
                 slug
             }
         }
+        tags {
+            nodes {
+                slug
+            }
+        }
         featuredImage {
-          node {
-            sourceUrl
-            altText
-          }
+            node {
+                sourceUrl
+                altText
+            }
         }
         author {
-          node {
-            name
-          }
+            node {
+                name
+            }
         }
       }
       latestPosts: posts(first: 6) {
@@ -91,7 +96,7 @@ async function getData(slug: string) {
                 name
                 slug
             }
-          }
+        }
           featuredImage {
             node {
               sourceUrl
@@ -111,13 +116,62 @@ async function getData(slug: string) {
             next: { revalidate: 60 },
         });
         const json = await res.json();
+        const post = json.data?.post || null;
+        let relatedPosts = [];
+
+        if (post && post.tags?.nodes?.length > 0) {
+            const tagSlugs = post.tags.nodes.map((t: any) => t.slug);
+            console.log("DEBUG: Current Post Tags:", tagSlugs);
+
+            const relatedQuery = `
+            query GetRelatedPosts($tagSlugs: [String]) {
+              posts(first: 6, where: { tagSlugIn: $tagSlugs }) {
+                nodes {
+                  id
+                  title
+                  slug
+                  date
+                  categories {
+                    nodes {
+                      name
+                      slug
+                    }
+                  }
+                  featuredImage {
+                    node {
+                      sourceUrl
+                      altText
+                    }
+                  }
+                }
+              }
+            }
+            `;
+
+            const relatedRes = await fetch("https://www.lared1061.com/graphql", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    query: relatedQuery,
+                    variables: { tagSlugs }
+                }),
+                next: { revalidate: 60 },
+            });
+            const relatedJson = await relatedRes.json();
+            relatedPosts = relatedJson.data?.posts?.nodes || [];
+            console.log("DEBUG: Fetched Related Posts Count:", relatedPosts.length);
+        } else {
+            console.log("DEBUG: No tags found for post");
+        }
+
         return {
-            post: json.data?.post || null,
+            post,
             recentPosts: json.data?.latestPosts?.nodes || [],
+            relatedPosts
         };
     } catch (error) {
         console.error("Error fetching data:", error);
-        return { post: null, recentPosts: [] };
+        return { post: null, recentPosts: [], relatedPosts: [] };
     }
 }
 
@@ -147,7 +201,7 @@ export default async function PostPage({
     params: Promise<{ slug: string }>;
 }) {
     const { slug } = await params;
-    const { post, recentPosts } = await getData(slug);
+    const { post, recentPosts, relatedPosts } = await getData(slug);
 
     if (!post) {
         notFound();
@@ -155,7 +209,20 @@ export default async function PostPage({
 
     // Filter out current post from recent posts for sidebar
     const otherPosts = recentPosts.filter((p: Post) => p.id !== post.id).slice(0, 5);
-    const bottomGridPosts = recentPosts.filter((p: Post) => p.id !== post.id).slice(0, 4);
+
+    // Process Related Posts
+    // 1. Exclude current post
+    // 2. Filter by date (last 2 weeks)
+    // 3. Limit to 5
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+    const filteredRelatedPosts = relatedPosts
+        .filter((p: Post) => p.id !== post.id) // Exclude current
+        .filter((p: Post) => new Date(p.date) > twoWeeksAgo) // Recent only
+        .slice(0, 5);
+
+    console.log("DEBUG: Filtered Related Posts:", filteredRelatedPosts.length);
 
     return (
         <main className="container mx-auto px-4 py-8 pb-32">
@@ -225,6 +292,38 @@ export default async function PostPage({
 
                 {/* Sidebar Column */}
                 <aside className="w-full xl:w-[400px] shrink-0 flex flex-col gap-8">
+
+                    {/* RELATED NEWS SECTION - Only if we have posts */}
+                    {filteredRelatedPosts.length > 0 && (
+                        <div className="flex flex-col">
+                            <div className="bg-[#FF0000] rounded-[15px] py-3 px-4 mb-4 flex justify-center items-center">
+                                <h3 className="text-xl font-bold text-white text-center uppercase">NOTICIAS RELACIONADAS</h3>
+                            </div>
+
+                            <div className="flex flex-col border border-[#DCDCDC] rounded-[15px] overflow-hidden">
+                                {filteredRelatedPosts.map((rPost: Post, idx: number) => (
+                                    <Link key={rPost.id} href={`/posts/${rPost.slug}`} className="p-5 border-b border-[#DCDCDC] last:border-0 flex gap-6 items-center hover:bg-gray-50 transition-colors group">
+                                        <div className="relative w-[100px] h-[75px] shrink-0 rounded-[8px] overflow-hidden bg-gray-200">
+                                            {rPost.featuredImage?.node?.sourceUrl && (
+                                                <Image
+                                                    src={rPost.featuredImage.node.sourceUrl}
+                                                    alt={rPost.featuredImage.node.altText || rPost.title}
+                                                    fill
+                                                    className="object-cover"
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[#E40000] text-xs font-bold uppercase">
+                                                {rPost.categories?.nodes[0]?.name || "NOTICIAS"}
+                                            </span>
+                                            <h4 className="text-base font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors line-clamp-3">{rPost.title}</h4>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* LO MÁS RECIENTE DE LA RED */}
                     <div className="flex flex-col">
