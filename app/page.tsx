@@ -306,13 +306,11 @@ export default async function Home() {
                 </Link>
 
                 {/* Excerpt (Reduced from xl to lg) */}
-                <div className="text-[#717171] text-base md:text-lg font-normal leading-snug line-clamp-3">
-                  {stripHtml(featuredPost.excerpt) || "Lorem ipsum dolor sit amet, consectetuer adipiscing elit..."}
-                </div>
+
 
                 {/* Meta (Reduced from lg to base) */}
+                {/* Meta (Reduced from lg to base) */}
                 <div className="flex justify-between items-center text-base mt-2 w-full">
-                  <span className="text-black font-normal">Redacción</span>
                   <span className="text-[#9F9F9F] font-normal">
                     {new Date(featuredPost.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </span>
@@ -368,11 +366,8 @@ export default async function Home() {
                         {post.title}
                       </h3>
                     </Link>
-                    <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
-                      {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
-                    </p>
+
                     <div className="flex justify-between items-center w-full mt-1">
-                      <span className="text-black text-xs font-normal">Redacción</span>
                       <span className="text-[#9F9F9F] text-xs font-normal">
                         {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                       </span>
@@ -415,11 +410,8 @@ export default async function Home() {
                           {post.title}
                         </h3>
                       </Link>
-                      <p className="text-[#717171] text-sm font-normal leading-snug line-clamp-3">
-                        {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
-                      </p>
+
                       <div className="flex justify-between items-center w-full mt-1">
-                        <span className="text-black text-xs font-normal">Redacción</span>
                         <span className="text-[#9F9F9F] text-xs font-normal">
                           {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                         </span>
@@ -477,7 +469,6 @@ export default async function Home() {
                       {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
                     </p>
                     <div className="flex justify-between items-center w-full mt-1">
-                      <span className="text-black text-xs font-normal">Redacción</span>
                       <span className="text-[#9F9F9F] text-xs font-normal">
                         {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                       </span>
@@ -524,7 +515,6 @@ export default async function Home() {
                         {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
                       </p>
                       <div className="flex justify-between items-center w-full mt-1">
-                        <span className="text-black text-xs font-normal">Redacción</span>
                         <span className="text-[#9F9F9F] text-xs font-normal">
                           {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                         </span>
@@ -595,7 +585,6 @@ export default async function Home() {
                   </Link>
 
                   <div className="flex justify-between items-center w-full mt-1">
-                    <span className="text-black text-sm font-normal">Redacción</span>
                     <span className="text-[#9F9F9F] text-sm font-normal">
                       {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
@@ -643,7 +632,6 @@ export default async function Home() {
                     </h3>
                   </Link>
                   <div className="flex justify-between items-center text-xs text-gray-500">
-                    <span>Redacción</span>
                     <span>{new Date(post.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
                 </div>

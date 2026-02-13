@@ -294,7 +294,6 @@ export default async function CategoryPage({
 
                                         {/* Meta: Author and Date */}
                                         <div className="flex justify-between items-center text-[11px] text-black mt-1">
-                                            <span className="font-normal">{post.author?.node?.name || 'Redacción'}</span>
                                             <span className="text-[#9F9F9F] font-normal">
                                                 {new Date(post.date).toLocaleDateString('en-US', {
                                                     month: 'long',

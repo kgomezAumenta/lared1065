@@ -25,6 +25,7 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
     const isDev = process.env.NODE_ENV === 'development';
 
     const adRef = React.useRef<HTMLDivElement>(null);
+    const adsPushedRef = React.useRef(false);
 
     React.useEffect(() => {
         // Check if the element is visible (width > 0)
@@ -33,12 +34,16 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
             return;
         }
 
+        if (adsPushedRef.current) return;
+
         try {
             // Push the ad to Google's queue
             // @ts-ignore
             (window.adsbygoogle = window.adsbygoogle || []).push({});
+            adsPushedRef.current = true;
         } catch (err) {
-            console.error("AdSense Error:", err);
+            // console.error("AdSense Error:", err); 
+            // Suppress error locally as it's often benign (already filled)
         }
     }, [slotId]); // Re-run if slotId changes
 
