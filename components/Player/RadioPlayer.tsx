@@ -83,7 +83,7 @@ export default function RadioPlayer() {
                 Hidden Player Container 
                 NOTE: Using -left-[9999px] because some widgets won't initialize if display:none or w-0/h-0 
             */}
-            <div className="fixed bottom-0 left-0 w-full z-50">
+            <div className="fixed bottom-0 left-0 z-50">
                 <td-player
                     id="td-player"
                     // @ts-ignore
