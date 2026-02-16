@@ -51,13 +51,23 @@ export default function Header() {
                 <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
                     {/* Date and Socials */}
                     <div className="flex items-center gap-4 text-xs font-bold w-full md:w-auto justify-between md:justify-start">
-                        <div className="flex gap-2 items-center">
+                        {/* Desktop Date */}
+                        <div className="hidden md:flex gap-2 items-center">
                             {/* Home Icon SVG from design */}
                             <svg width="14" height="14" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M5.16667 1V3.5M16.8333 1V3.5M1 18.5V6C1 5.33696 1.26339 4.70107 1.73223 4.23223C2.20107 3.76339 2.83696 3.5 3.5 3.5H18.5C19.163 3.5 19.7989 3.76339 20.2678 4.23223C20.7366 4.70107 21 5.33696 21 6V18.5M1 18.5C1 19.163 1.26339 19.7989 1.73223 20.2678C2.20107 20.7366 2.83696 21 3.5 21H18.5C19.163 21 19.7989 20.7366 20.2678 20.2678C20.7366 19.7989 21 19.163 21 18.5M1 18.5V10.1667C1 9.50363 1.26339 8.86774 1.73223 8.3989C2.20107 7.93006 2.83696 7.66667 3.5 7.66667H18.5C19.163 7.66667 19.7989 7.93006 20.2678 8.3989C20.7366 8.86774 21 9.50363 21 10.1667V18.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             <span className="capitalize">{new Date().toLocaleDateString('es-GT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
+
+                        {/* Mobile Exchange Rate */}
+                        {exchangeRate && (
+                            <div className="md:hidden flex items-center gap-2">
+                                <span className="font-extrabold text-[#FFD700]">$</span>
+                                <span>{exchangeRate.sell.toFixed(2)}</span>
+                            </div>
+                        )}
+
                         {/* Mobile Menu Button - Moved to Top Bar */}
                         <button
                             className="md:hidden text-white hover:bg-red-700 rounded-lg transition-colors p-1"
@@ -67,7 +77,7 @@ export default function Header() {
                         </button>
                     </div>
 
-                    {/* Currency Rate */}
+                    {/* Desktop Currency Rate */}
                     {exchangeRate && (
                         <div className="hidden md:flex items-center gap-2 text-xs font-bold">
                             <span>Tasa de Cambio Banguat - </span>
