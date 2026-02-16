@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, orderBy, onSnapshot, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Clock } from "lucide-react";
+import Link from "next/link";
 
 interface NewsItem {
     id: string;
@@ -87,9 +88,9 @@ export default function PostLiveUpdates({ slug, onHasUpdates }: PostLiveUpdatesP
                                 {item.title}
                             </div>
                             {item.url && (
-                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm hover:underline mt-1 inline-block">
+                                <Link href={item.url} className="text-blue-600 text-sm hover:underline mt-1 inline-block">
                                     Ver enlace relacionado
-                                </a>
+                                </Link>
                             )}
                         </div>
                     </div>

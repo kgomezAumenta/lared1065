@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@apollo/client": "^4.1.0",
-    "@softlari/banguat-exchange-rate": "^1.0.5",
     "@tailwindcss/typography": "^0.5.19",
     "firebase": "^12.9.0",
     "graphql": "^16.12.0",

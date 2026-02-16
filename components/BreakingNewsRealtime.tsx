@@ -94,7 +94,7 @@ export default function BreakingNewsRealtime() {
                                 {item.title}
                             </h4>
                             {item.url ? (
-                                <Link href={item.url} target={item.url.startsWith('http') ? '_blank' : undefined} className="text-black text-sm hover:underline mt-1 flex items-center gap-1 group">
+                                <Link href={item.url} className="text-black text-sm hover:underline mt-1 flex items-center gap-1 group">
                                     Ver más <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             ) : null}
