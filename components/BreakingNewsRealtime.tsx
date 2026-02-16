@@ -58,7 +58,7 @@ export default function BreakingNewsRealtime() {
 
     if (loading) {
         return (
-            <div className="bg-[#F7F7F7] rounded-[20px] p-6 hidden md:flex flex-col gap-4 min-h-[200px] animate-pulse">
+            <div className="bg-[#F7F7F7] rounded-[20px] p-6 flex flex-col gap-4 min-h-[200px] animate-pulse">
                 <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
                 <div className="space-y-4">
                     <div className="h-4 bg-gray-200 rounded w-full"></div>
@@ -69,7 +69,7 @@ export default function BreakingNewsRealtime() {
     }
 
     return (
-        <div className="bg-[#F7F7F7] rounded-[20px] p-6 hidden md:flex flex-col gap-4">
+        <div className="bg-[#F7F7F7] rounded-[20px] p-6 flex flex-col gap-4">
             <div className="flex items-center gap-4 mb-2">
                 <div className="w-5 h-5 bg-[#E40000] rounded-full shrink-0 flex items-center justify-center animate-pulse">
                     <div className="w-2 h-2 bg-white rounded-full" />

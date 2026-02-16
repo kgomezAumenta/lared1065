@@ -272,6 +272,11 @@ export default async function Home() {
         </div>
       </div>
 
+      {/* Mobile-Only Minuto a Minuto (Placed below Hero) */}
+      <div className="md:hidden container mx-auto px-4 mb-8">
+        <BreakingNewsRealtime />
+      </div>
+
       {/* Main Content + Sidebar Layout */}
       {/* Updated: Main Content takes flex-1 (fills space), Sidebar fixed to 400px (narrower) */}
       <div className="flex flex-col xl:flex-row gap-12 justify-center items-start max-w-[1630px] mx-auto w-full">
@@ -596,7 +601,9 @@ export default async function Home() {
         <div className="flex flex-col gap-8 w-full xl:w-[400px] shrink-0">
 
           {/* AHORA Section - Realtime Firebase */}
-          <BreakingNewsRealtime />
+          <div className="hidden md:block">
+            <BreakingNewsRealtime />
+          </div>
 
           {/* LO MÁS RECIENTE DE LA RED Section */}
           <div className="hidden md:flex flex-col">
