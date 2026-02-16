@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
+import { generateSeoMetadata, SeoFragment } from "@/lib/seo";
 
 interface Post {
     id: string;
@@ -90,6 +91,7 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
         name
         description
         count
+        ${SeoFragment}
       }
       sidebarPosts: posts(first: 5, where: { categoryName: "internacionales" }) {
         nodes {
@@ -197,10 +199,7 @@ export async function generateMetadata({
 
     const title = categoryInfo?.name || slug.charAt(0).toUpperCase() + slug.slice(1);
 
-    return {
-        title: `${title} - La Red 106.1`,
-        description: `Noticias y artículos sobre ${title}`,
-    };
+    return generateSeoMetadata(categoryInfo?.seo, `${title} - La Red 106.1`);
 }
 
 export default async function CategoryPage({

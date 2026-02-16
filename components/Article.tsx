@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
 import PostScripts from "@/components/PostScripts";
+import PostLiveUpdates from "@/components/PostLiveUpdates";
 
 interface Post {
     id: string;
@@ -55,7 +56,11 @@ const processContent = (content: string) => {
     return processed;
 };
 
-export default function Article({ post, relatedPosts }: { post: Post, relatedPosts: any[] }) {
+export default function Article({ post, relatedPosts, onLiveUpdatesActive }: {
+    post: Post,
+    relatedPosts: any[],
+    onLiveUpdatesActive?: (active: boolean) => void
+}) {
     if (!post) return null;
 
     return (
@@ -112,6 +117,9 @@ export default function Article({ post, relatedPosts }: { post: Post, relatedPos
                     ))}
                 </div>
             ) : null}
+
+            {/* Post Live Updates (Minuto a Minuto) */}
+            <PostLiveUpdates slug={post.slug} onHasUpdates={onLiveUpdatesActive} />
 
             {/* Content */}
             <div

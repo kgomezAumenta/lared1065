@@ -30,9 +30,31 @@ export default function ArticleFeed({
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
+    // Track posts that have live updates
+    const postsWithLiveUpdates = useRef<Set<string>>(new Set());
+    const [isLiveBlogMode, setIsLiveBlogMode] = useState(false); // To force re-render msg
+
+    const handleLiveUpdatesFound = useCallback((slug: string) => {
+        if (!postsWithLiveUpdates.current.has(slug)) {
+            postsWithLiveUpdates.current.add(slug);
+            // If the *last* post is the one that just found updates, we might want to update UI to show "Scroll disabled"
+            // We can check if it matches the last post in list
+            const lastPost = posts[posts.length - 1]; // Use ref if stale state issue, but here callback ok
+            // Actually relying on the set in loadNextPost is arguably enough, but let's trigger a state update just in case we want to show a message
+            setIsLiveBlogMode(true);
+        }
+    }, [posts]);
+
     // Function to load next post
     const loadNextPost = useCallback(async () => {
         if (loading || allLoaded) return;
+
+        // CHECK: If the current LAST post has live updates, disable scroll
+        const lastPost = posts[posts.length - 1];
+        if (lastPost && postsWithLiveUpdates.current.has(lastPost.slug)) {
+            console.log("InfScroll: Stopped because current post has Live Updates active.");
+            return;
+        }
 
         setLoading(true);
 
@@ -164,7 +186,11 @@ export default function ArticleFeed({
         <div className="flex flex-col w-full">
             {posts.map((post, index) => (
                 <div key={post.id} className="flex flex-col w-full">
-                    <Article post={post} relatedPosts={[]} /> {/* We handle related in feed logic, simplified Article */}
+                    <Article
+                        post={post}
+                        relatedPosts={[]}
+                        onLiveUpdatesActive={() => handleLiveUpdatesFound(post.slug)}
+                    />
 
                     {/* Inject Ad between posts */}
                     {index < posts.length - 1 && (
@@ -176,8 +202,15 @@ export default function ArticleFeed({
             ))}
 
             {/* Load More Trigger */}
-            <div ref={loadMoreTriggerRef} className="w-full py-12 flex justify-center items-center">
-                {loading && <Loader2 className="w-8 h-8 animate-spin text-red-600" />}
+            <div ref={loadMoreTriggerRef} className="w-full py-12 flex flex-col justify-center items-center gap-4">
+                {posts.length > 0 && postsWithLiveUpdates.current.has(posts[posts.length - 1].slug) ? (
+                    <div className="bg-gray-100 text-gray-500 px-6 py-3 rounded-full text-sm font-medium flex items-center gap-2">
+                        <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+                        Cobertura en vivo activa. Scroll infinito pausado.
+                    </div>
+                ) : (
+                    loading && <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+                )}
                 {allLoaded && <p className="text-gray-500">No hay más noticias relacionadas.</p>}
             </div>
         </div>

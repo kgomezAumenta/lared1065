@@ -6,6 +6,10 @@ import { ArrowRight, Bookmark, Clock, Search, Menu } from "lucide-react";
 import TopicRow from "@/components/TopicRow";
 import BreakingNews from "@/components/BreakingNews";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
+import BreakingNewsRealtime from "@/components/BreakingNewsRealtime";
+import { generateSeoMetadata, SeoFragment } from "@/lib/seo";
+
+import { Metadata } from "next";
 
 
 interface Post {
@@ -89,6 +93,9 @@ async function getData() {
       }
       # Remove old ACF Ad query - now using REST API
       # homeSettings: page(id: "/", idType: URI) { ... }
+      page(id: "/", idType: URI) {
+        ${SeoFragment}
+      }
     }
   `;
 
@@ -143,6 +150,7 @@ async function getData() {
         data?.internacionales?.nodes[0],
         data?.economia?.nodes[0],
       ].filter(Boolean),
+      seo: data?.page?.seo || null,
     };
   } catch (error) {
     console.error("Error fetching home data:", error);
@@ -161,11 +169,20 @@ async function getData() {
 
       dynamicCategoryName: "Noticias",
       categorySnapshots: [],
+      seo: null,
     };
   }
 }
 
+// Generate Metadata
+export async function generateMetadata(): Promise<Metadata> {
+  const { seo } = await getData();
+  return generateSeoMetadata(seo, "La Red 106.1 - Noticias de Guatemala y el Mundo");
+}
+
 export default async function Home() {
+  // ... existing Home component ...
+
   const {
     stickyHero,
     latestPosts,
@@ -176,11 +193,10 @@ export default async function Home() {
     deporteIntPosts,
     deporteNacPosts,
     economiaPosts,
+    /*
     ahoraPosts,
     acfBreakingNews,
-    dynamicCategoryName,
-    categorySnapshots,
-
+    */
   } = await getData();
 
   // 1. Determine Featured/Hero Post
@@ -193,72 +209,7 @@ export default async function Home() {
     ? latestPosts.filter((p: Post) => p.id !== stickyHero.id).slice(0, 5)
     : latestPosts.slice(1, 6);
 
-  // 3. AHORA Logic
-  // Helper: Repair malformed "YYYY-DD-MM" dates with incorrect "UTC" label.
-  // Input: "2026-05-02T16:03:00+00:00" (Day 05, Month 02, Time 16:03 Local)
-  // Output: Date object for "2026-02-05T16:03:00-06:00"
-  const repairDate = (dateString: string) => {
-    if (!dateString) return new Date();
 
-    // Check for the specific malformed pattern with +00:00 suffix
-    // Warning: We are assuming YYYY-DD-MM based on logs (2026-05-02 for Feb 5th)
-    const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\+00:00$/);
-
-    if (match) {
-      const [, year, day, month, hour, minute, second] = match;
-      // Swap Day (group 2) and Month (group 3). Force -06:00 timezone.
-      return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}-06:00`);
-    }
-
-    // Fallback for standard ISO or other string formats
-    return new Date(dateString);
-  };
-
-  const isRecentBoxItem = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    // 3 hour window (Strict filtering per user request)
-    const timeLimit = new Date(now.getTime() - 3 * 60 * 60 * 1000);
-    return date >= timeLimit;
-  };
-
-  const mappedAcfItems = acfBreakingNews.map((item: BreakingAcfItem, index: number) => {
-    let linkUrl = null;
-    if (item.newsUrl && typeof item.newsUrl === 'object' && 'url' in item.newsUrl) {
-      linkUrl = item.newsUrl.url;
-    } else if (typeof item.newsUrl === 'string') {
-      linkUrl = item.newsUrl;
-    }
-
-    // Apply repair logic
-    const validDate = item.newsTimestamp ? repairDate(item.newsTimestamp).toISOString() : new Date().toISOString();
-
-    return {
-      id: `acf-${index}`,
-      title: item.newsTitle,
-      date: validDate,
-      link: linkUrl,
-      type: 'custom' as const
-    };
-  });
-
-  const mappedFallbackPosts = ahoraPosts.map((post: Post) => ({
-    id: post.id,
-    title: post.title,
-    date: post.date,
-    link: `/posts/${post.slug}`,
-    type: 'post' as const
-  }));
-
-  // Filter items by 24 hours
-  const validAcfItems = mappedAcfItems.filter((item: any) => item.date ? isRecentBoxItem(item.date) : false);
-  const validFallbackPosts = mappedFallbackPosts.filter((item: any) => isRecentBoxItem(item.date));
-
-  // Decision Logic: Use ACF (if valid), else Fallback (if valid), else Unfiltered Fallback
-  // "sino en ACF no hay nada mostrar las ultimas noticias": If no recent news, just show latest.
-  const finalBreakingNews = validAcfItems.length > 0
-    ? validAcfItems
-    : (validFallbackPosts.length > 0 ? validFallbackPosts : mappedFallbackPosts.slice(0, 5));
 
   return (
     <main className="container mx-auto px-4 py-6 pb-32">
@@ -644,39 +595,8 @@ export default async function Home() {
         {/* RIGHT COLUMN (Sidebar) - Width 400px (Narrower) */}
         <div className="flex flex-col gap-8 w-full xl:w-[400px] shrink-0">
 
-          {/* AHORA Section */}
-          <div className="bg-[#F7F7F7] rounded-[20px] p-6 hidden md:flex flex-col gap-4">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-5 h-5 bg-[#E40000] rounded-full shrink-0" />
-              <h3 className="text-xl font-bold text-black">AHORA</h3>
-            </div>
-
-            {/* Ahora Items List */}
-            {finalBreakingNews.length > 0 ? finalBreakingNews.slice(0, 5).map((item: any, i: number) => (
-              <div key={i} className="flex gap-4 items-start border-b border-gray-200 pb-4 last:border-0 last:pb-0">
-                {/* Circle Icon */}
-                <div className="shrink-0 mt-1">
-                  <div className="w-5 h-5 rounded-full border-[3px] border-[#E40000] bg-white" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[#E40000] text-base font-bold">
-                    {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  {/* Title reduced to lg */}
-                  <h4 className="text-lg font-bold text-black leading-tight">
-                    {item.title}
-                  </h4>
-                  {item.link ? (
-                    <Link href={item.link} className="text-black text-sm hover:underline mt-1">Ver más</Link>
-                  ) : (
-                    <span className="text-black text-sm mt-1 cursor-default">Ver más</span>
-                  )}
-                </div>
-              </div>
-            )) : (
-              <p className="text-gray-500 text-sm">No hay noticias urgentes.</p>
-            )}
-          </div>
+          {/* AHORA Section - Realtime Firebase */}
+          <BreakingNewsRealtime />
 
           {/* LO MÁS RECIENTE DE LA RED Section */}
           <div className="hidden md:flex flex-col">

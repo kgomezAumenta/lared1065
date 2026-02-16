@@ -5,6 +5,7 @@ import Link from "next/link";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
 import PostScripts from "@/components/PostScripts";
 import ArticleFeed from "@/components/ArticleFeed";
+import { generateSeoMetadata, SeoFragment } from "@/lib/seo";
 
 // ... (keep stripHtml helper if needed for metadata)
 const stripHtml = (html: string) => {
@@ -45,6 +46,7 @@ async function getData(slug: string) {
                 name
             }
         }
+        ${SeoFragment}
       }
       latestPosts: posts(first: 6) {
         nodes {
@@ -192,10 +194,7 @@ export async function generateMetadata({
         };
     }
 
-    return {
-        title: `${post.title} - La Red 106.1`,
-        description: stripHtml(post.excerpt) || `Lea más sobre ${post.title} en La Red 106.1`,
-    };
+    return generateSeoMetadata(post.seo, `${post.title} - La Red 106.1`);
 }
 
 export default async function PostPage({

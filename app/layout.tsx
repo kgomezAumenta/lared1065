@@ -19,6 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.lared1061.com"),
   title: "La Red 106.1",
   description: "La Red 106.1 - Conectando con tu vida",
 };
