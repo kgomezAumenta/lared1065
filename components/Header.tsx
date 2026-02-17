@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Menu, X, Facebook, Twitter, Instagram, Youtube, TrendingUp } from "lucide-react";
 import { getExchangeRate } from "@/app/actions/banguat";
+import WeatherWidget from "./WeatherWidget";
 
 const NAV_LINKS = [
     { href: "/", label: "Inicio" },
@@ -46,55 +47,14 @@ export default function Header() {
 
     return (
         <header className="w-full relative font-[family-name:var(--font-geist-sans)]">
-            {/* Top Bar with Socials and Date - RED BACKGROUND */}
-            <div className="bg-[#FF0000] text-white py-2">
-                <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
-                    {/* Date and Socials */}
-                    <div className="flex items-center gap-4 text-xs font-bold w-full md:w-auto justify-between md:justify-start">
-                        {/* Desktop Date */}
-                        <div className="hidden md:flex gap-2 items-center">
-                            {/* Home Icon SVG from design */}
-                            <svg width="14" height="14" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5.16667 1V3.5M16.8333 1V3.5M1 18.5V6C1 5.33696 1.26339 4.70107 1.73223 4.23223C2.20107 3.76339 2.83696 3.5 3.5 3.5H18.5C19.163 3.5 19.7989 3.76339 20.2678 4.23223C20.7366 4.70107 21 5.33696 21 6V18.5M1 18.5C1 19.163 1.26339 19.7989 1.73223 20.2678C2.20107 20.7366 2.83696 21 3.5 21H18.5C19.163 21 19.7989 20.7366 20.2678 20.2678C20.7366 19.7989 21 19.163 21 18.5M1 18.5V10.1667C1 9.50363 1.26339 8.86774 1.73223 8.3989C2.20107 7.93006 2.83696 7.66667 3.5 7.66667H18.5C19.163 7.66667 19.7989 7.93006 20.2678 8.3989C20.7366 8.86774 21 9.50363 21 10.1667V18.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            <span className="capitalize">{new Date().toLocaleDateString('es-GT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                        </div>
-
-                        {/* Mobile Exchange Rate */}
-                        {exchangeRate && (
-                            <div className="md:hidden flex items-center gap-1 text-[10px] uppercase font-bold tracking-tight">
-                                <span className="opacity-80">Tasa de Cambio:</span>
-                                <span className="text-[#FFD700] font-extrabold mr-1">Q{exchangeRate.sell.toFixed(2)}</span>
-                            </div>
-                        )}
-
-                        {/* Mobile Menu Button - Moved to Top Bar */}
-                        <button
-                            className="md:hidden text-white hover:bg-red-700 rounded-lg transition-colors p-1"
-                            onClick={toggleMenu}
-                        >
-                            <Menu size={28} />
-                        </button>
-                    </div>
-
-                    {/* Desktop Currency Rate */}
-                    {exchangeRate && (
-                        <div className="hidden md:flex items-center gap-2 text-xs font-bold">
-                            <span>Tasa de Cambio Banguat - </span>
-                            <span className="font-extrabold">Compra:</span>
-                            <span>Q{exchangeRate.buy.toFixed(2)}</span>
-                            <span className="font-extrabold">Venta:</span>
-                            <span>Q{exchangeRate.sell.toFixed(2)}</span>
-                        </div>
-                    )}
-                </div>
-            </div>
+            {/* Top Bar ... */}
 
             {/* Main Header with Logo and Search - WHITE BACKGROUND */}
             <div className="bg-white py-6 border-b border-gray-200">
                 <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
                     {/* Logo SVG */}
                     <Link href="/" className="shrink-0 hover:opacity-90 transition-opacity">
+                        {/* ... Logo SVG path ... */}
                         <svg width="316" height="87" viewBox="0 0 316 87" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-60 md:w-80 h-auto">
                             <path d="M272.272 0H43.7281C19.5777 0 0 19.4756 0 43.5C0 67.5244 19.5777 87 43.7281 87H272.272C296.422 87 316 67.5244 316 43.5C316 19.4756 296.422 0 272.272 0Z" fill="#FF0000" />
                             <path fillRule="evenodd" clipRule="evenodd" d="M78.2858 26.8079C79.2781 37.9234 80.2988 49.0766 81.272 59.972C80.3462 60.2738 71.0558 60.3084 69.2672 60.0506C69.1566 58.7241 68.9891 57.1806 68.869 55.7754C68.4993 55.744 68.196 55.7063 67.8989 55.7063C64.7231 55.6937 61.5473 55.7189 58.3715 55.6843C57.6668 55.6748 57.2339 55.9075 56.8547 56.4859C56.2259 57.4572 55.4959 58.3626 54.8544 59.3245C54.5195 59.8369 54.1118 60.0758 53.5051 60.0066C53.3503 59.9877 53.1986 60.0066 53.0438 60.0066H20.6474C20.8054 59.4596 20.8939 59.1013 21.0108 58.7461C24.3794 48.5391 27.7416 38.3321 31.1102 28.1219C31.4515 27.0877 31.4515 27.0751 32.5575 27.0751H41.3865C41.7246 27.0783 42.0659 27.1254 42.5684 27.1537C39.9866 34.9999 37.4397 42.733 34.8485 50.6138H36.1188C40.192 50.6138 44.2558 50.5918 48.3227 50.6326C49.1506 50.6421 49.6689 50.3874 50.1492 49.7304C55.5686 42.4532 61.0291 35.2074 66.4358 27.9239C67.052 27.0877 67.6904 26.7545 68.7332 26.7828C71.4508 26.8551 74.1589 26.8048 76.8702 26.8048H78.2827L78.2858 26.8079ZM68.3982 40.4539C68.3034 40.4225 68.2118 40.3879 68.1201 40.3533C66.4137 42.7738 64.6852 45.1818 62.9219 47.7312H68.7237C68.6099 45.2541 68.5025 42.8524 68.3982 40.4539Z" fill="white" />
@@ -108,23 +68,35 @@ export default function Header() {
                         </svg>
                     </Link>
 
-                    {/* Search Bar */}
-                    <form onSubmit={handleSearch} className="relative w-full md:w-auto">
-                        <div className="flex items-center bg-[#F0F0F0] rounded-full px-6 py-3 w-full md:w-[500px] justify-between">
-                            <input
-                                type="text"
-                                placeholder="Buscar..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="bg-transparent border-none outline-none text-xl text-gray-600 placeholder-gray-400 w-full"
-                            />
-                            <button type="submit">
-                                <Search size={24} className="text-gray-500" />
-                            </button>
+                    {/* Right Side: Weather (Desktop) + Search */}
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <div className="hidden md:block">
+                            <WeatherWidget variant="header-desktop" />
                         </div>
-                    </form>
+
+                        {/* Search Bar */}
+                        <form onSubmit={handleSearch} className="relative w-full md:w-auto">
+                            <div className="flex items-center bg-[#F0F0F0] rounded-full px-6 py-3 w-full md:w-[400px] justify-between">
+                                <input
+                                    type="text"
+                                    placeholder="Buscar..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="bg-transparent border-none outline-none text-xl text-gray-600 placeholder-gray-400 w-full"
+                                />
+                                <button type="submit">
+                                    <Search size={24} className="text-gray-500" />
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
                 </div>
+            </div>
+
+            {/* Mobile Weather Widget (Below Main Header) */}
+            <div className="md:hidden">
+                <WeatherWidget variant="header-mobile" />
             </div>
 
             {/* Navigation Bar - RED BACKGROUND */}

@@ -2,16 +2,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-const s3Client = new S3Client({
-    region: process.env.AWS_REGION!,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    },
-});
+// Initialize outside to allow reuse, but we'll check validity inside
+const getS3Client = () => {
+    const region = process.env.AWS_REGION;
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+
+    // console.log("Debug S3 Config:", { region, hasAccessKey: !!accessKeyId, hasSecret: !!secretAccessKey });
+
+    if (!accessKeyId || !secretAccessKey) {
+        throw new Error("AWS Credentials are missing from environment variables.");
+    }
+
+    return new S3Client({
+        region,
+        credentials: {
+            accessKeyId,
+            secretAccessKey,
+        },
+    });
+}
 
 export async function POST(req: NextRequest) {
     try {
+        const s3Client = getS3Client();
+
         const formData = await req.formData();
         const file = formData.get("file") as File;
 
