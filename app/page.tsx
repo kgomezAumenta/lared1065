@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic'; // Force dynamic rendering to fix cachin
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Bookmark, Clock, Search, Menu } from "lucide-react";
+import MediaLightbox from "@/components/MediaLightbox";
+import MatchesGrid from "@/components/MatchesGrid";
 import TopicRow from "@/components/TopicRow";
 import BreakingNews from "@/components/BreakingNews";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
@@ -217,6 +219,9 @@ export default async function Home() {
       <div className="mb-8 flex justify-center w-full">
         <AdvertisingBanner slotId="2850891862" placeholderText="Anuncio 1" />
       </div>
+
+      {/* Live Matches Grid */}
+      <MatchesGrid />
 
       {/* Hero Section (Single Featured Post) */}
       <div className="bg-[#FAFAFA] flex justify-center py-8 mb-8">

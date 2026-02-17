@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "secure.gravatar.com",
       },
+      {
+        protocol: "https",
+        hostname: "laredaumenta.s3.us-east-2.amazonaws.com",
+      },
     ],
   },
 };

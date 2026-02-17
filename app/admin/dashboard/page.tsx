@@ -4,8 +4,21 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDocs, Timestamp } from "firebase/firestore";
-import { Trash2, LogOut, RefreshCcw, Twitter, Globe, FileText } from "lucide-react";
+
+import { Trash2, LogOut, RefreshCcw, Twitter, Globe, FileText, Upload, Image as ImageIcon, Film } from "lucide-react";
+import {
+    collection,
+    addDoc,
+    serverTimestamp,
+    query,
+    orderBy,
+    onSnapshot,
+    deleteDoc,
+    doc,
+    items,
+    getDocs,
+    writeBatch
+} from "firebase/firestore";
 import { postTweet } from "@/app/actions/twitter";
 
 interface NewsItem {
@@ -14,7 +27,9 @@ interface NewsItem {
     url?: string;
     timestamp: any;
     postedToTwitter?: boolean;
-    postSlug?: string; // Optional for Global, Required for Post-Specific
+    postSlug?: string;
+    mediaUrl?: string;
+    mediaType?: 'image' | 'video';
 }
 
 export default function AdminDashboard() {
@@ -25,12 +40,16 @@ export default function AdminDashboard() {
     // UI State
     const [activeTab, setActiveTab] = useState<'global' | 'post'>('global');
 
-    // Form State (Shared but managed separately per tab conceptually)
+    // Form State
     const [title, setTitle] = useState("");
     const [url, setUrl] = useState("");
-    const [postSlug, setPostSlug] = useState(""); // New field for Post Specific
+    const [postSlug, setPostSlug] = useState("");
     const [postToTwitter, setPostToTwitter] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+
+    // File Upload State
+    const [file, setFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
 
     // List State
     const [globalItems, setGlobalItems] = useState<NewsItem[]>([]);
@@ -46,7 +65,6 @@ export default function AdminDashboard() {
             }
         });
 
-        // 1. Global News Listener
         const qGlobal = query(collection(db, "breaking_news"), orderBy("timestamp", "desc"));
         const unsubscribeGlobal = onSnapshot(qGlobal, (snapshot) => {
             const items = snapshot.docs.map(doc => ({
@@ -56,8 +74,6 @@ export default function AdminDashboard() {
             setGlobalItems(items);
         });
 
-        // 2. Post-Specific News Listener
-        // Note: We might want to filter this better later, but for now getting all and sorting is fine for small scale
         const qPost = query(collection(db, "post_live_updates"), orderBy("timestamp", "desc"));
         const unsubscribePost = onSnapshot(qPost, (snapshot) => {
             const items = snapshot.docs.map(doc => ({
@@ -67,7 +83,6 @@ export default function AdminDashboard() {
             setPostItems(items);
         });
 
-
         return () => {
             unsubscribeAuth();
             unsubscribeGlobal();
@@ -75,14 +90,12 @@ export default function AdminDashboard() {
         };
     }, [router]);
 
-    // Helper to extract slug from full URL if pasted
     const extractSlug = (input: string) => {
         if (!input) return "";
         try {
             if (input.startsWith("http")) {
                 const urlObj = new URL(input);
                 const pathSegments = urlObj.pathname.split("/").filter(Boolean);
-                // Assuming /posts/slug or /slug
                 return pathSegments[pathSegments.length - 1] || input;
             }
             return input;
@@ -91,6 +104,12 @@ export default function AdminDashboard() {
         }
     }
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setFile(e.target.files[0]);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
@@ -98,11 +117,42 @@ export default function AdminDashboard() {
         try {
             const collectionName = activeTab === 'global' ? "breaking_news" : "post_live_updates";
 
+            let mediaUrl = null;
+            let mediaType = null;
+
+            // 1. Upload File (Server-Side Proxy)
+            if (file) {
+                setUploading(true);
+                const isVideo = file.type.startsWith('video/');
+                mediaType = isVideo ? 'video' : 'image';
+
+                // Create FormData
+                const formData = new FormData();
+                formData.append("file", file);
+
+                // Upload via Server API
+                const response = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to upload file");
+                }
+
+                mediaUrl = data.url;
+                setUploading(false);
+            }
+
             const newItem: any = {
                 title,
                 url: url || null,
                 timestamp: serverTimestamp(),
                 createdAt: serverTimestamp(),
+                mediaUrl: mediaUrl || null,
+                mediaType: mediaType || null,
             };
 
             if (activeTab === 'post') {
@@ -123,13 +173,12 @@ export default function AdminDashboard() {
             // Twitter Integration
             if (postToTwitter) {
                 try {
-                    let tweetUrl = url;
-                    // If it's a post update, link to the Live Blog (the post)
+                    let tweetUrl = url || mediaUrl || ""; // Prioritize URL link, else media link
                     if (activeTab === 'post') {
                         tweetUrl = `https://www.lared1061.com/posts/${newItem.postSlug}`;
                     }
 
-                    const result = await postTweet(title, tweetUrl);
+                    const result = await postTweet(title, tweetUrl || undefined); // Pass undefined if empty string
                     if (result.success) {
                         console.log("Posted to Twitter:", result);
                     }
@@ -139,19 +188,21 @@ export default function AdminDashboard() {
                 }
             }
 
-            // Reset Form (keep slug if in post mode for rapid updates?)
+            // Reset Form 
             setTitle("");
-            // setUrl(""); // Keep URL maybe?
-            // setPostToTwitter(false);
+            // setUrl(""); 
+            setFile(null);
 
-            // Only reset slug if switching posts? For now clear it to avoid mistakes.
-            // setPostSlug(""); 
+            // Clear file input manually
+            const fileInput = document.getElementById('mediaUpload') as HTMLInputElement;
+            if (fileInput) fileInput.value = '';
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error adding document: ", error);
-            alert("Error al guardar la noticia");
+            alert("Error al guardar: " + error.message);
         } finally {
             setSubmitting(false);
+            setUploading(false);
         }
     };
 
@@ -263,6 +314,31 @@ export default function AdminDashboard() {
                             />
                         </div>
 
+                        {/* Media Upload */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Imagen o Video (Opcional)</label>
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer relative">
+                                <input
+                                    type="file"
+                                    id="mediaUpload"
+                                    accept="image/*,video/*"
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                {file ? (
+                                    <div className="flex items-center gap-2 text-green-600 font-medium">
+                                        {file.type.startsWith('image') ? <ImageIcon size={24} /> : <Film size={24} />}
+                                        <span>{file.name}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center text-gray-400">
+                                        <Upload size={32} className="mb-2" />
+                                        <span className="text-sm">Haz clic o arrastra para subir (Imagen o Video)</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">URL Enlace (Opcional)</label>
                             <input
@@ -295,7 +371,7 @@ export default function AdminDashboard() {
                             disabled={submitting}
                             className={`w-full py-3 rounded-lg font-bold text-white transition ${submitting ? 'bg-gray-400' : 'bg-[#E40000] hover:bg-red-700'}`}
                         >
-                            {submitting ? 'Guardando...' : (activeTab === 'global' ? 'Publicar Noticia' : 'Publicar Actualización')}
+                            {submitting ? (uploading ? 'Subiendo Archivo...' : 'Guardando...') : (activeTab === 'global' ? 'Publicar Noticia' : 'Publicar Actualización')}
                         </button>
                     </form>
                 </div>
@@ -325,6 +401,12 @@ export default function AdminDashboard() {
                                         {item.postSlug && (
                                             <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold">
                                                 Post: {item.postSlug}
+                                            </span>
+                                        )}
+                                        {item.mediaUrl && (
+                                            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-1">
+                                                {item.mediaType === 'video' ? <Film size={10} /> : <ImageIcon size={10} />}
+                                                Media
                                             </span>
                                         )}
                                     </div>
