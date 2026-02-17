@@ -5,7 +5,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
-import { Trash2, LogOut, RefreshCcw, Twitter, Globe, FileText, Upload, Image as ImageIcon, Film } from "lucide-react";
+import { Trash2, LogOut, RefreshCcw, Twitter, Globe, FileText, Upload, Image as ImageIcon, Film, Trophy } from "lucide-react";
 import {
     collection,
     addDoc,
@@ -252,12 +252,20 @@ export default function AdminDashboard() {
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-gray-800">Panel Minuto a Minuto</h1>
-                    <button
-                        onClick={() => signOut(auth)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition"
-                    >
-                        <LogOut size={18} /> Salir
-                    </button>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={() => router.push('/admin/matches')}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#E40000] text-white hover:bg-red-700 rounded transition font-bold"
+                        >
+                            <Trophy size={18} /> Gestionar Partidos
+                        </button>
+                        <button
+                            onClick={() => signOut(auth)}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition"
+                        >
+                            <LogOut size={18} /> Salir
+                        </button>
+                    </div>
                 </div>
 
                 {/* Tabs */}
