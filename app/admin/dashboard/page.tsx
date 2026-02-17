@@ -15,7 +15,6 @@ import {
     onSnapshot,
     deleteDoc,
     doc,
-    items,
     getDocs,
     writeBatch
 } from "firebase/firestore";
