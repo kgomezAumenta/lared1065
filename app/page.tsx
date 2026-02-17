@@ -80,7 +80,7 @@ async function getData() {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       futbolNacional: posts(first: 8, where: { categoryName: "futbol-nacional" }) {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
-      futbolInternacional: posts(first: 4, where: { categoryName: "futbol-internacional" }) {
+      futbolInternacional: posts(first: 6, where: { categoryName: "futbol-internacional" }) {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       deporteNacional: posts(first: 6, where: { categoryName: "deporte-nacional" }) {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
@@ -211,69 +211,204 @@ export default async function Home() {
     ? latestPosts.filter((p: Post) => p.id !== stickyHero.id).slice(0, 5)
     : latestPosts.slice(1, 6);
 
+  // 3. Filter Side Column Posts (Ensure Main Featured is not repeated)
+  const sideFutbolNacional = futbolNacionalPosts.find((p: Post) => p.id !== featuredPost?.id) || futbolNacionalPosts[0];
+  const sideInternacional = internacionalesPosts.find((p: Post) => p.id !== featuredPost?.id) || internacionalesPosts[0];
+  const sideNacional = nacionalesPosts.find((p: Post) => p.id !== featuredPost?.id) || nacionalesPosts[0];
+  const sideFutbolInternacional = futbolInternacionalPosts.find((p: Post) => p.id !== featuredPost?.id) || futbolInternacionalPosts[0];
+  const sideEconomia = economiaPosts.find((p: Post) => p.id !== featuredPost?.id) || economiaPosts[0];
+
 
 
   return (
     <main className="container mx-auto px-4 py-6 pb-32">
       {/* Top Advertisement "Anuncio 1" */}
       <div className="mb-8 flex justify-center w-full">
-        <AdvertisingBanner slotId="2850891862" placeholderText="Anuncio 1" />
+        <AdvertisingBanner adId={37291} placeholderText="Anuncio 1" />
       </div>
 
       {/* Live Matches Grid */}
       <MatchesGrid />
 
-      {/* Hero Section (Single Featured Post) */}
+      {/* Hero Section (Single Featured Post + 3 Side Categories) */}
       <div className="bg-[#FAFAFA] flex justify-center py-8 mb-8">
-        <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center max-w-[1630px] mx-auto w-full">
-          {featuredPost && (
-            <>
-              {/* Left Column: Image (Narrower: 700px) */}
-              <div className="relative w-full md:w-[700px] aspect-[16/9] shrink-0">
-                <Link href={`/posts/${featuredPost.slug}`} className="block w-full h-full relative overflow-hidden rounded-[20px]">
-                  {featuredPost.featuredImage?.node?.sourceUrl ? (
-                    <Image
-                      src={featuredPost.featuredImage.node.sourceUrl}
-                      alt={featuredPost.featuredImage.node.altText || featuredPost.title}
-                      fill
-                      priority
-                      className="object-cover hover:scale-105 transition-transform duration-700"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200" />
-                  )}
-                </Link>
-              </div>
+        <div className="flex flex-col lg:flex-row gap-8 items-stretch max-w-[1630px] mx-auto w-full">
 
-              {/* Right Column: Content (Wider: flex-1) */}
-              <div className="flex flex-col gap-4 w-full flex-1">
-                {/* Category Pill */}
-                <div className="self-start">
+          {/* Main Featured Post (Left - Larger) */}
+          {featuredPost && (
+            <div className="flex-1 flex flex-col gap-4 relative">
+              <Link href={`/posts/${featuredPost.slug}`} className="block w-full aspect-[16/9] relative overflow-hidden rounded-[20px]">
+                {featuredPost.featuredImage?.node?.sourceUrl ? (
+                  <Image
+                    src={featuredPost.featuredImage.node.sourceUrl}
+                    alt={featuredPost.featuredImage.node.altText || featuredPost.title}
+                    fill
+                    priority
+                    className="object-cover hover:scale-105 transition-transform duration-700"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200" />
+                )}
+                {/* Floating Category Pill */}
+                <div className="absolute top-4 left-4">
                   <span className="bg-[#E40000] text-white text-xs font-bold uppercase px-4 py-1.5 rounded-[10px]">
-                    {featuredPost.categories?.nodes[0]?.name || "NACIONALES"}
+                    {featuredPost.categories?.nodes[0]?.name || "DESTACADO"}
                   </span>
                 </div>
+              </Link>
 
-                {/* Title (Reduced from 4xl to 3xl) */}
+              <div className="flex flex-col gap-2">
                 <Link href={`/posts/${featuredPost.slug}`} className="group">
-                  <h1 className="text-2xl md:text-3xl font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                  <h1 className="text-2xl md:text-4xl font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
                     {featuredPost.title}
                   </h1>
                 </Link>
-
-                {/* Excerpt (Reduced from xl to lg) */}
-
-
-                {/* Meta (Reduced from lg to base) */}
-                {/* Meta (Reduced from lg to base) */}
-                <div className="flex justify-between items-center text-base mt-2 w-full">
-                  <span className="text-[#9F9F9F] font-normal">
+                <div className="flex justify-between items-center text-sm text-gray-500">
+                  <span>
                     {new Date(featuredPost.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
               </div>
-            </>
+            </div>
           )}
+
+          {/* Side Column: 3 Specific Category Posts */}
+          <div className="w-full lg:w-[320px] xl:w-[380px] flex flex-col gap-6 shrink-0 border-t lg:border-t-0 lg:border-l border-gray-200 pt-6 lg:pt-0 lg:pl-6">
+
+            {/* 1. Futbol Nacional */}
+            {sideFutbolNacional && (
+              <div className="flex gap-4 items-start group">
+                <Link href={`/posts/${sideFutbolNacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+                  {sideFutbolNacional.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={sideFutbolNacional.featuredImage.node.sourceUrl}
+                      alt={sideFutbolNacional.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : <div className="w-full h-full bg-gray-200" />}
+                </Link>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#E40000] uppercase">FUTBOL NACIONAL</span>
+                  <Link href={`/posts/${sideFutbolNacional.slug}`}>
+                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
+                      {sideFutbolNacional.title}
+                    </h3>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Separator */}
+            <div className="h-[1px] bg-gray-200 w-full" />
+
+            {/* 2. Internacionales */}
+            {sideInternacional && (
+              <div className="flex gap-4 items-start group">
+                <Link href={`/posts/${sideInternacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+                  {sideInternacional.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={sideInternacional.featuredImage.node.sourceUrl}
+                      alt={sideInternacional.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : <div className="w-full h-full bg-gray-200" />}
+                </Link>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#E40000] uppercase">INTERNACIONALES</span>
+                  <Link href={`/posts/${sideInternacional.slug}`}>
+                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
+                      {sideInternacional.title}
+                    </h3>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Separator */}
+            <div className="h-[1px] bg-gray-200 w-full" />
+
+            {/* 3. Nacionales */}
+            {sideNacional && (
+              <div className="flex gap-4 items-start group">
+                <Link href={`/posts/${sideNacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+                  {sideNacional.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={sideNacional.featuredImage.node.sourceUrl}
+                      alt={sideNacional.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : <div className="w-full h-full bg-gray-200" />}
+                </Link>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#E40000] uppercase">NACIONALES</span>
+                  <Link href={`/posts/${sideNacional.slug}`}>
+                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
+                      {sideNacional.title}
+                    </h3>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Separator */}
+            <div className="h-[1px] bg-gray-200 w-full" />
+
+            {/* 4. Futbol Internacional */}
+            {sideFutbolInternacional && (
+              <div className="flex gap-4 items-start group">
+                <Link href={`/posts/${sideFutbolInternacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+                  {sideFutbolInternacional.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={sideFutbolInternacional.featuredImage.node.sourceUrl}
+                      alt={sideFutbolInternacional.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : <div className="w-full h-full bg-gray-200" />}
+                </Link>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#E40000] uppercase">FUTBOL INTERNACIONAL</span>
+                  <Link href={`/posts/${sideFutbolInternacional.slug}`}>
+                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
+                      {sideFutbolInternacional.title}
+                    </h3>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Separator */}
+            <div className="h-[1px] bg-gray-200 w-full" />
+
+            {/* 5. Economia */}
+            {sideEconomia && (
+              <div className="flex gap-4 items-start group">
+                <Link href={`/posts/${sideEconomia.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+                  {sideEconomia.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={sideEconomia.featuredImage.node.sourceUrl}
+                      alt={sideEconomia.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : <div className="w-full h-full bg-gray-200" />}
+                </Link>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#E40000] uppercase">ECONOMÍA</span>
+                  <Link href={`/posts/${sideEconomia.slug}`}>
+                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
+                      {sideEconomia.title}
+                    </h3>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+          </div>
+
         </div>
       </div>
 
@@ -339,7 +474,7 @@ export default async function Home() {
                 {/* Ad Slot (3rd Column in Row 1) */}
                 <div className="flex-1 min-w-[280px]">
                   <AdvertisingBanner
-                    slotId="4048423466"
+                    adId={37292}
                     placeholderText="Anuncio Nacionales"
                     className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
                   />
@@ -440,7 +575,7 @@ export default async function Home() {
                 {/* Ad Slot (3rd Column in Row 1) */}
                 <div className="flex-1 min-w-[280px]">
                   <AdvertisingBanner
-                    slotId="1502151177"
+                    adId={37293}
                     placeholderText="Anuncio Inter"
                     className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
                   />
@@ -508,97 +643,9 @@ export default async function Home() {
             </div>
           </section>
 
-          {/* Fútbol Nacional Section */}
-          <section className="">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex flex-col gap-4 w-full">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-bold text-black uppercase">FÚTBOL NACIONAL</h2>
-                  <Link href="/category/futbol-nacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
-                    Ver Más
-                  </Link>
-                </div>
-                <div className="h-[2px] bg-black w-full" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {futbolNacionalPosts.slice(0, 2).map((post: Post) => (
-                <div key={post.id} className="flex flex-col gap-3">
-                  <Link href={`/posts/${post.slug}`} className="relative block h-[300px] w-full rounded-[20px] overflow-hidden">
-                    {post.featuredImage?.node?.sourceUrl && (
-                      <Image
-                        src={post.featuredImage.node.sourceUrl}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
-                    {/* Floating Pill inside image */}
-                    <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
-                      FUTBOL NACIONAL
-                    </div>
-                  </Link>
 
-                  <Link href={`/posts/${post.slug}`} className="group">
-                    <h3 className="text-xl font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
-                      {post.title}
-                    </h3>
-                  </Link>
 
-                  <div className="flex justify-between items-center w-full mt-1">
-                    <span className="text-[#9F9F9F] text-sm font-normal">
-                      {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
 
-          {/* Fútbol Internacional Section */}
-          <section className="">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex flex-col gap-4 w-full">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-bold text-black uppercase">FÚTBOL INTERNACIONAL</h2>
-                  <Link href="/category/futbol-internacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
-                    Ver Más
-                  </Link>
-                </div>
-                <div className="h-[2px] bg-black w-full" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* 3 Columns for Futbol Internacional */}
-              {futbolInternacionalPosts.slice(0, 3).map((post: Post) => (
-                <div key={post.id} className="flex flex-col gap-3">
-                  <Link href={`/posts/${post.slug}`} className="relative block h-[270px] w-full rounded-[20px] overflow-hidden">
-                    {post.featuredImage?.node?.sourceUrl ? (
-                      <Image
-                        src={post.featuredImage.node.sourceUrl}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200" />
-                    )}
-                    <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
-                      FUTBOL INTERNACIONAL
-                    </div>
-                  </Link>
-                  <Link href={`/posts/${post.slug}`} className="group">
-                    <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
-                      {post.title}
-                    </h3>
-                  </Link>
-                  <div className="flex justify-between items-center text-xs text-gray-500">
-                    <span>{new Date(post.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
 
         </div>
 
@@ -636,14 +683,14 @@ export default async function Home() {
           {/* Sidebar Ads */}
           {/* 1. Sidebar Rojo */}
           <AdvertisingBanner
-            slotId="1330868584"
+            adId={37294}
             placeholderText="Anuncio Sidebar 1"
             className="w-full h-[450px] bg-[#FF0000] rounded-[15px] flex flex-col justify-center items-center text-white p-6 text-center"
           />
 
           {/* 2. Sidebar Gris (Long) */}
           <AdvertisingBanner
-            slotId="4243864586"
+            adId={37295}
             placeholderText="Anuncio Sidebar 2"
             className="hidden md:flex w-full h-[600px] bg-[#F0F0F0] rounded-[15px] flex-col justify-center items-center text-[#717171] p-6 text-center"
           />
@@ -651,6 +698,108 @@ export default async function Home() {
         </div>
 
 
+      </div>
+
+      {/* Fútbol Nacional Section (Full Width) */}
+      <div className="container mx-auto px-4 max-w-[1630px] mb-16 mt-16">
+        <section className="">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col gap-4 w-full">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-extrabold text-[#E40000] uppercase">FÚTBOL NACIONAL</h2>
+                <Link href="/category/futbol-nacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+                  Ver Más
+                </Link>
+              </div>
+              <div className="h-[2px] bg-black w-full" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {futbolNacionalPosts.slice(0, 6).map((post: Post) => (
+              <div key={post.id} className="flex flex-col gap-3">
+                <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
+                  {post.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={post.featuredImage.node.sourceUrl}
+                      alt={post.title}
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                  {/* Floating Pill inside image */}
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                    FUTBOL NACIONAL
+                  </div>
+                </Link>
+
+                <Link href={`/posts/${post.slug}`} className="group">
+                  <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                    {post.title}
+                  </h3>
+                </Link>
+
+                <div className="flex justify-between items-center w-full mt-1">
+                  <span className="text-[#9F9F9F] text-xs font-normal">
+                    {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Fútbol Internacional Section (Full Width) */}
+      <div className="container mx-auto px-4 max-w-[1630px] mb-16">
+        <section className="">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col gap-4 w-full">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-extrabold text-[#E40000] uppercase">FÚTBOL INTERNACIONAL</h2>
+                <Link href="/category/futbol-internacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+                  Ver Más
+                </Link>
+              </div>
+              <div className="h-[2px] bg-black w-full" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {futbolInternacionalPosts.slice(0, 6).map((post: Post) => (
+              <div key={post.id} className="flex flex-col gap-3">
+                <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
+                  {post.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={post.featuredImage.node.sourceUrl}
+                      alt={post.title}
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                  {/* Floating Pill inside image */}
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                    FUTBOL INTERNACIONAL
+                  </div>
+                </Link>
+
+                <Link href={`/posts/${post.slug}`} className="group">
+                  <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                    {post.title}
+                  </h3>
+                </Link>
+
+                <div className="flex justify-between items-center w-full mt-1">
+                  <span className="text-[#9F9F9F] text-xs font-normal">
+                    {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );

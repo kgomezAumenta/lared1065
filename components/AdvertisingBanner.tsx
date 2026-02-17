@@ -4,12 +4,15 @@ import React from 'react';
 import Image from "next/image";
 import Link from "next/link";
 
+import { getAdById } from "@/app/services/ads";
+
 interface AdvertisingBannerProps {
     className?: string;
     minHeight?: string;
-    slotId?: string;       // Google AdSense Data Slot ID
-    format?: "auto" | "fluid" | "rectangle" | "vertical" | "horizontal"; // AdSense Data Format
-    responsive?: "true" | "false"; // Full Width Responsive
+    slotId?: string;       // Google AdSense Data Slot ID (Legacy)
+    adId?: number;         // Advanced Ads ID (New)
+    format?: "auto" | "fluid" | "rectangle" | "vertical" | "horizontal";
+    responsive?: "true" | "false";
     placeholderText?: string;
 }
 
@@ -17,46 +20,45 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
     className,
     minHeight = "280px",
     slotId,
+    adId,
     format = "auto",
     responsive = "true",
     placeholderText = "Anuncio"
 }) => {
-    // Determine development mode to show placeholder
-    const isDev = process.env.NODE_ENV === 'development';
+    const [adContent, setAdContent] = React.useState<string | null>(null);
 
-    const adRef = React.useRef<HTMLDivElement>(null);
-    const adsPushedRef = React.useRef(false);
-
+    // Fetch Advanced Ad if adId is present
     React.useEffect(() => {
-        // Check if the element is visible (width > 0)
-        // This prevents "No slot size for availableWidth=0" error when component is rendered but hidden (e.g. mobile sidebar)
-        if (adRef.current && adRef.current.offsetWidth === 0) {
-            return;
-        }
+        if (!adId) return;
 
-        if (adsPushedRef.current) return;
-
-        try {
-            // Push the ad to Google's queue
-            // @ts-ignore
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-            adsPushedRef.current = true;
-        } catch (err) {
-            // console.error("AdSense Error:", err); 
-            // Suppress error locally as it's often benign (already filled)
+        async function loadAd() {
+            const ad = await getAdById(adId!);
+            if (ad && ad.content) {
+                // Determine if the content is just an image or script
+                // We will render it raw. Scripts might need execute logic if they are written via document.write (less likely in modern ads)
+                // But usually dangerousSetInnerHTML works for standard tags.
+                // For scripts that need execution, we might need a helper, but let's try direct first.
+                setAdContent(ad.content);
+            }
         }
-    }, [slotId]); // Re-run if slotId changes
+        loadAd();
+    }, [adId]);
 
     // Container styles
-    // If className provided, use it. Else use default layout.
     const containerClass = className
         ? `${className} overflow-hidden bg-gray-100 flex justify-center items-center`
         : `w-full bg-gray-100 py-4 flex items-center justify-center min-h-[${minHeight}]`;
 
     return (
-        <div ref={adRef} className={containerClass}>
-            {/* If slotId is present, render the ad unit */}
-            {slotId ? (
+        <div className={containerClass}>
+            {/* 1. Advanced Ads (Priority) */}
+            {adId && adContent ? (
+                <div
+                    className="w-full h-full flex justify-center items-center"
+                    dangerouslySetInnerHTML={{ __html: adContent }}
+                />
+            ) : slotId ? (
+                /* 2. Google AdSense (Legacy/Fallback) */
                 <ins className="adsbygoogle"
                     style={{ display: 'block', width: '100%', height: '100%' }}
                     data-ad-client="ca-pub-6134329722127197"
@@ -65,14 +67,34 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
                     data-full-width-responsive={responsive}
                 />
             ) : (
-                // Fallback / Placeholder
+                /* 3. Placeholder */
                 <div className="flex flex-col gap-2 items-center text-gray-400">
                     <span className="text-xs uppercase tracking-widest font-bold">{placeholderText}</span>
-                    {!slotId && <span className="text-[10px] text-red-500">(Falta Slot ID)</span>}
+                    {!adId && !slotId && <span className="text-[10px] text-red-500">(Falta ID)</span>}
                 </div>
             )}
+
+            {/* Initialize AdSense if using slotId (Existing Logic) */}
+            {slotId && !adId && <AdSenseScript slotId={slotId} />}
         </div>
     );
 };
 
+// Extracted AdSense Logic to separate component to clean up main effect
+const AdSenseScript = ({ slotId }: { slotId: string }) => {
+    const adsPushedRef = React.useRef(false);
+
+    React.useEffect(() => {
+        if (adsPushedRef.current) return;
+        try {
+            // @ts-ignore
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+            adsPushedRef.current = true;
+        } catch (err) { }
+    }, [slotId]);
+
+    return null;
+}
+
 export default AdvertisingBanner;
+
