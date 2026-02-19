@@ -65,6 +65,17 @@ async function getData() {
           featuredImage { node { sourceUrl altText } }
         }
       }
+      urgentRelated: posts(first: 5, where: { tag: "urgente-portada-relaciononada" }) {
+        nodes {
+          id
+          title
+          slug
+          date
+          excerpt
+          categories { nodes { name slug } }
+          featuredImage { node { sourceUrl altText } }
+        }
+      }
       latestPosts: posts(first: 10) {
         nodes {
           id
@@ -123,14 +134,17 @@ async function getData() {
     // Validate Sticky Hero (must be < 24h old)
     let validStickyHero = null;
     if (data?.stickyPost?.nodes[0]) {
-      const postDate = new Date(data.stickyPost.nodes[0].date).getTime();
-      if ((now - postDate) < twentyFourHours) {
-        validStickyHero = data.stickyPost.nodes[0];
-      }
+      // Allow urgent post to persist longer if needed, or stick to 24h rule?
+      // Assuming urgent needs to be fresh too, keeping 24h logic from previous code or removing if user implies manual control.
+      // User said "until changed", implying manual control. Let's relax the 24h check or keep it broad.
+      // For safety, let's trust the tag mostly, but maybe a 48h window?
+      // Or just take it if it exists as per request "fix that note".
+      validStickyHero = data.stickyPost.nodes[0];
     }
 
     return {
       stickyHero: validStickyHero,
+      urgentRelatedPosts: data?.urgentRelated?.nodes || [],
       latestPosts: data?.latestPosts?.nodes || [],
       nacionalesPosts: data?.nacionales?.nodes || [],
       futbolNacionalPosts: data?.futbolNacional?.nodes || [],
@@ -158,6 +172,7 @@ async function getData() {
     console.error("Error fetching home data:", error);
     return {
       stickyHero: null,
+      urgentRelatedPosts: [],
       latestPosts: [],
       nacionalesPosts: [],
       futbolNacionalPosts: [],
@@ -187,6 +202,7 @@ export default async function Home() {
 
   const {
     stickyHero,
+    urgentRelatedPosts,
     latestPosts,
     nacionalesPosts,
     futbolNacionalPosts,
@@ -202,8 +218,9 @@ export default async function Home() {
   } = await getData();
 
   // 1. Determine Featured/Hero Post
-  // If a post with tag "Portada" exists, use it. Otherwise, use latest.
+  // If a post with tag "urgente-portada" exists, use it. Otherwise, use latest.
   const featuredPost = stickyHero || latestPosts[0];
+  const isUrgentHero = !!stickyHero; // Flag to check if we are in Urgent Mode
 
   // 2. Sidebar List (Lo Más Reciente)
   // If featured is sticky, use full latest. If default, skip first.
@@ -211,14 +228,190 @@ export default async function Home() {
     ? latestPosts.filter((p: Post) => p.id !== stickyHero.id).slice(0, 5)
     : latestPosts.slice(1, 6);
 
-  // 3. Filter Side Column Posts (Ensure Main Featured is not repeated)
-  const sideFutbolNacional = futbolNacionalPosts.find((p: Post) => p.id !== featuredPost?.id) || futbolNacionalPosts[0];
-  const sideInternacional = internacionalesPosts.find((p: Post) => p.id !== featuredPost?.id) || internacionalesPosts[0];
-  const sideNacional = nacionalesPosts.find((p: Post) => p.id !== featuredPost?.id) || nacionalesPosts[0];
-  const sideFutbolInternacional = futbolInternacionalPosts.find((p: Post) => p.id !== featuredPost?.id) || futbolInternacionalPosts[0];
-  const sideEconomia = economiaPosts.find((p: Post) => p.id !== featuredPost?.id) || economiaPosts[0];
+  // 3. Sidebar List Logic
+  // If Urgent Mode is active AND we have related urgent posts, show them.
+  // Otherwise, fallback to the standard mixed category list.
 
+  let sidebarContent;
+  let sidebarTitle = "SECCIONES";
 
+  if (isUrgentHero && urgentRelatedPosts.length > 0) {
+    // URGENT RELATED MODE
+    sidebarTitle = (
+      <div className="bg-[#FF0000] rounded-[15px] py-4 px-4 mb-4 flex justify-center items-center shadow-md">
+        <h3 className="text-xl font-extrabold text-white text-center uppercase tracking-wide">
+          NOTICIAS RELACIONADAS
+        </h3>
+      </div>
+    ) as any;
+    sidebarContent = urgentRelatedPosts.slice(0, 5).map((post: Post) => (
+      <div key={post.id} className="flex gap-4 items-start group">
+        <Link href={`/posts/${post.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+          {post.featuredImage?.node?.sourceUrl ? (
+            <Image
+              src={post.featuredImage.node.sourceUrl}
+              alt={post.title}
+              fill
+              className="object-cover"
+            />
+          ) : <div className="w-full h-full bg-gray-200" />}
+        </Link>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold text-[#E40000] uppercase">
+            {post.categories?.nodes[0]?.name || "RELACIONADO"}
+          </span>
+          <Link href={`/posts/${post.slug}`}>
+            <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+              {post.title}
+            </h3>
+          </Link>
+        </div>
+      </div>
+    ));
+  } else {
+    // STANDARD MODE (Mixed Categories)
+    const sideFutbolNacional = futbolNacionalPosts.find((p: Post) => p.id !== featuredPost?.id) || futbolNacionalPosts[0];
+    const sideInternacional = internacionalesPosts.find((p: Post) => p.id !== featuredPost?.id) || internacionalesPosts[0];
+    const sideNacional = nacionalesPosts.find((p: Post) => p.id !== featuredPost?.id) || nacionalesPosts[0];
+    const sideFutbolInternacional = futbolInternacionalPosts.find((p: Post) => p.id !== featuredPost?.id) || futbolInternacionalPosts[0];
+    const sideEconomia = economiaPosts.find((p: Post) => p.id !== featuredPost?.id) || economiaPosts[0];
+
+    sidebarContent = (
+      <>
+        {/* 1. Futbol Nacional */}
+        {sideFutbolNacional && (
+          <div className="flex gap-4 items-start group">
+            <Link href={`/posts/${sideFutbolNacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+              {sideFutbolNacional.featuredImage?.node?.sourceUrl ? (
+                <Image
+                  src={sideFutbolNacional.featuredImage.node.sourceUrl}
+                  alt={sideFutbolNacional.title}
+                  fill
+                  className="object-cover"
+                />
+              ) : <div className="w-full h-full bg-gray-200" />}
+            </Link>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-[#E40000] uppercase">FUTBOL NACIONAL</span>
+              <Link href={`/posts/${sideFutbolNacional.slug}`}>
+                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                  {sideFutbolNacional.title}
+                </h3>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Separator */}
+        <div className="h-[1px] bg-gray-200 w-full" />
+
+        {/* 2. Internacionales */}
+        {sideInternacional && (
+          <div className="flex gap-4 items-start group">
+            <Link href={`/posts/${sideInternacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+              {sideInternacional.featuredImage?.node?.sourceUrl ? (
+                <Image
+                  src={sideInternacional.featuredImage.node.sourceUrl}
+                  alt={sideInternacional.title}
+                  fill
+                  className="object-cover"
+                />
+              ) : <div className="w-full h-full bg-gray-200" />}
+            </Link>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-[#E40000] uppercase">INTERNACIONALES</span>
+              <Link href={`/posts/${sideInternacional.slug}`}>
+                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                  {sideInternacional.title}
+                </h3>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Separator */}
+        <div className="h-[1px] bg-gray-200 w-full" />
+
+        {/* 3. Nacionales */}
+        {sideNacional && (
+          <div className="flex gap-4 items-start group">
+            <Link href={`/posts/${sideNacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+              {sideNacional.featuredImage?.node?.sourceUrl ? (
+                <Image
+                  src={sideNacional.featuredImage.node.sourceUrl}
+                  alt={sideNacional.title}
+                  fill
+                  className="object-cover"
+                />
+              ) : <div className="w-full h-full bg-gray-200" />}
+            </Link>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-[#E40000] uppercase">NACIONALES</span>
+              <Link href={`/posts/${sideNacional.slug}`}>
+                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                  {sideNacional.title}
+                </h3>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Separator */}
+        <div className="h-[1px] bg-gray-200 w-full" />
+
+        {/* 4. Futbol Internacional */}
+        {sideFutbolInternacional && (
+          <div className="flex gap-4 items-start group">
+            <Link href={`/posts/${sideFutbolInternacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+              {sideFutbolInternacional.featuredImage?.node?.sourceUrl ? (
+                <Image
+                  src={sideFutbolInternacional.featuredImage.node.sourceUrl}
+                  alt={sideFutbolInternacional.title}
+                  fill
+                  className="object-cover"
+                />
+              ) : <div className="w-full h-full bg-gray-200" />}
+            </Link>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-[#E40000] uppercase">FUTBOL INTERNACIONAL</span>
+              <Link href={`/posts/${sideFutbolInternacional.slug}`}>
+                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                  {sideFutbolInternacional.title}
+                </h3>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Separator */}
+        <div className="h-[1px] bg-gray-200 w-full" />
+
+        {/* 5. Economia */}
+        {sideEconomia && (
+          <div className="flex gap-4 items-start group">
+            <Link href={`/posts/${sideEconomia.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
+              {sideEconomia.featuredImage?.node?.sourceUrl ? (
+                <Image
+                  src={sideEconomia.featuredImage.node.sourceUrl}
+                  alt={sideEconomia.title}
+                  fill
+                  className="object-cover"
+                />
+              ) : <div className="w-full h-full bg-gray-200" />}
+            </Link>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-[#E40000] uppercase">ECONOMÍA</span>
+              <Link href={`/posts/${sideEconomia.slug}`}>
+                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                  {sideEconomia.title}
+                </h3>
+              </Link>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <main className="container mx-auto px-4 py-6 pb-32">
@@ -237,14 +430,14 @@ export default async function Home() {
           {/* Main Featured Post (Left - Larger) */}
           {featuredPost && (
             <div className="flex-1 flex flex-col gap-4 relative">
-              <Link href={`/posts/${featuredPost.slug}`} className="block w-full aspect-[16/9] relative overflow-hidden rounded-[20px]">
+              <Link href={`/posts/${featuredPost.slug}`} className="block w-full aspect-[21/9] relative overflow-hidden rounded-[20px]">
                 {featuredPost.featuredImage?.node?.sourceUrl ? (
                   <Image
                     src={featuredPost.featuredImage.node.sourceUrl}
                     alt={featuredPost.featuredImage.node.altText || featuredPost.title}
                     fill
                     priority
-                    className="object-cover hover:scale-105 transition-transform duration-700"
+                    className="object-cover object-top hover:scale-105 transition-transform duration-700"
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-200" />
@@ -258,7 +451,10 @@ export default async function Home() {
               </Link>
 
               <div className="flex flex-col gap-2">
-                <Link href={`/posts/${featuredPost.slug}`} className="group">
+                <Link href={`/posts/${featuredPost.slug}`} className="group flex flex-col gap-2">
+                  <span className="text-[#E40000] font-bold text-sm uppercase tracking-wide">
+                    {featuredPost.categories?.nodes[0]?.name || "NOTICIAS"}
+                  </span>
                   <h1 className="text-2xl md:text-4xl font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
                     {featuredPost.title}
                   </h1>
@@ -272,140 +468,26 @@ export default async function Home() {
             </div>
           )}
 
-          {/* Side Column: 3 Specific Category Posts */}
+          {/* Side Column: 3 Specific Category Posts OR Related Urgent Posts */}
           <div className="w-full lg:w-[320px] xl:w-[380px] flex flex-col gap-6 shrink-0 border-t lg:border-t-0 lg:border-l border-gray-200 pt-6 lg:pt-0 lg:pl-6">
 
-            {/* 1. Futbol Nacional */}
-            {sideFutbolNacional && (
-              <div className="flex gap-4 items-start group">
-                <Link href={`/posts/${sideFutbolNacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
-                  {sideFutbolNacional.featuredImage?.node?.sourceUrl ? (
-                    <Image
-                      src={sideFutbolNacional.featuredImage.node.sourceUrl}
-                      alt={sideFutbolNacional.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : <div className="w-full h-full bg-gray-200" />}
-                </Link>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-[#E40000] uppercase">FUTBOL NACIONAL</span>
-                  <Link href={`/posts/${sideFutbolNacional.slug}`}>
-                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
-                      {sideFutbolNacional.title}
-                    </h3>
-                  </Link>
+            {/* Conditional Content */}
+            {typeof sidebarTitle === 'string' ? (
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col gap-4 w-full">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-black uppercase">{sidebarTitle}</h2>
+                  </div>
+                  <div className="h-[2px] bg-black w-full" />
                 </div>
               </div>
+            ) : (
+              sidebarTitle
             )}
 
-            {/* Separator */}
-            <div className="h-[1px] bg-gray-200 w-full" />
-
-            {/* 2. Internacionales */}
-            {sideInternacional && (
-              <div className="flex gap-4 items-start group">
-                <Link href={`/posts/${sideInternacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
-                  {sideInternacional.featuredImage?.node?.sourceUrl ? (
-                    <Image
-                      src={sideInternacional.featuredImage.node.sourceUrl}
-                      alt={sideInternacional.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : <div className="w-full h-full bg-gray-200" />}
-                </Link>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-[#E40000] uppercase">INTERNACIONALES</span>
-                  <Link href={`/posts/${sideInternacional.slug}`}>
-                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
-                      {sideInternacional.title}
-                    </h3>
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {/* Separator */}
-            <div className="h-[1px] bg-gray-200 w-full" />
-
-            {/* 3. Nacionales */}
-            {sideNacional && (
-              <div className="flex gap-4 items-start group">
-                <Link href={`/posts/${sideNacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
-                  {sideNacional.featuredImage?.node?.sourceUrl ? (
-                    <Image
-                      src={sideNacional.featuredImage.node.sourceUrl}
-                      alt={sideNacional.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : <div className="w-full h-full bg-gray-200" />}
-                </Link>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-[#E40000] uppercase">NACIONALES</span>
-                  <Link href={`/posts/${sideNacional.slug}`}>
-                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
-                      {sideNacional.title}
-                    </h3>
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {/* Separator */}
-            <div className="h-[1px] bg-gray-200 w-full" />
-
-            {/* 4. Futbol Internacional */}
-            {sideFutbolInternacional && (
-              <div className="flex gap-4 items-start group">
-                <Link href={`/posts/${sideFutbolInternacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
-                  {sideFutbolInternacional.featuredImage?.node?.sourceUrl ? (
-                    <Image
-                      src={sideFutbolInternacional.featuredImage.node.sourceUrl}
-                      alt={sideFutbolInternacional.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : <div className="w-full h-full bg-gray-200" />}
-                </Link>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-[#E40000] uppercase">FUTBOL INTERNACIONAL</span>
-                  <Link href={`/posts/${sideFutbolInternacional.slug}`}>
-                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
-                      {sideFutbolInternacional.title}
-                    </h3>
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {/* Separator */}
-            <div className="h-[1px] bg-gray-200 w-full" />
-
-            {/* 5. Economia */}
-            {sideEconomia && (
-              <div className="flex gap-4 items-start group">
-                <Link href={`/posts/${sideEconomia.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
-                  {sideEconomia.featuredImage?.node?.sourceUrl ? (
-                    <Image
-                      src={sideEconomia.featuredImage.node.sourceUrl}
-                      alt={sideEconomia.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : <div className="w-full h-full bg-gray-200" />}
-                </Link>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-[#E40000] uppercase">ECONOMÍA</span>
-                  <Link href={`/posts/${sideEconomia.slug}`}>
-                    <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-2">
-                      {sideEconomia.title}
-                    </h3>
-                  </Link>
-                </div>
-              </div>
-            )}
+            <div className="flex flex-col gap-6 p-4 border border-gray-100 rounded-[20px] bg-white shadow-sm">
+              {sidebarContent}
+            </div>
 
           </div>
 

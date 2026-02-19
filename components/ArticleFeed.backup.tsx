@@ -5,7 +5,6 @@ import Article from "./Article";
 import { getPostContent, getMoreCategoryPosts } from "@/app/actions/getPost";
 import { Loader2 } from "lucide-react";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
-import ArticleSkeleton from "./ArticleSkeleton";
 
 interface Post {
     id: string;
@@ -14,8 +13,6 @@ interface Post {
     categories?: { nodes: { slug: string }[] };
     [key: string]: any;
 }
-
-const EMPTY_RELATED_POSTS: any[] = [];
 
 export default function ArticleFeed({
     initialPost,
@@ -37,17 +34,16 @@ export default function ArticleFeed({
     const postsWithLiveUpdates = useRef<Set<string>>(new Set());
     const [isLiveBlogMode, setIsLiveBlogMode] = useState(false); // To force re-render msg
 
-    // NEW: Buffer for the next post
-    const [preloadedPost, setPreloadedPost] = useState<any>(null);
-    const isPreloading = useRef(false);
-
-    // Stable callback for detecting live updates
     const handleLiveUpdatesFound = useCallback((slug: string) => {
         if (!postsWithLiveUpdates.current.has(slug)) {
             postsWithLiveUpdates.current.add(slug);
+            // If the *last* post is the one that just found updates, we might want to update UI to show "Scroll disabled"
+            // We can check if it matches the last post in list
+            const lastPost = posts[posts.length - 1]; // Use ref if stale state issue, but here callback ok
+            // Actually relying on the set in loadNextPost is arguably enough, but let's trigger a state update just in case we want to show a message
             setIsLiveBlogMode(true);
         }
-    }, []);
+    }, [posts]);
 
     // Function to load next post
     const loadNextPost = useCallback(async () => {
@@ -61,38 +57,6 @@ export default function ArticleFeed({
         }
 
         setLoading(true);
-
-        // 0. Use Preloaded Post if available
-        if (preloadedPost) {
-            // Validate it's not a duplicate
-            if (loadedSlugs.current.has(preloadedPost.post.slug)) {
-                console.warn("Preloaded post is duplicate, skipping:", preloadedPost.post.slug);
-                setPreloadedPost(null);
-                // Fall through to normal fetch logic...
-            } else {
-                console.log("Using preloaded post:", preloadedPost.post.slug);
-                setPosts(prev => [...prev, preloadedPost.post]);
-                loadedSlugs.current.add(preloadedPost.post.slug);
-                loadedIds.current.add(preloadedPost.post.id);
-
-                // Merge related posts from preloaded data
-                if (preloadedPost.relatedPosts?.length) {
-                    setRelatedQueue(prev => {
-                        const newQueue = [...prev];
-                        preloadedPost.relatedPosts.forEach((p: any) => {
-                            if (!newQueue.some((existing: any) => existing.id === p.id)) {
-                                newQueue.push(p);
-                            }
-                        });
-                        return newQueue;
-                    });
-                }
-
-                setPreloadedPost(null); // Clear buffer to trigger next preload
-                setLoading(false);
-                return;
-            }
-        }
 
         // 1. Try to get from Related Queue first
         let nextPostLite = relatedQueue.find(p => !loadedSlugs.current.has(p.slug));
@@ -166,38 +130,7 @@ export default function ArticleFeed({
         } finally {
             setLoading(false);
         }
-    }, [loading, allLoaded, relatedQueue, posts, preloadedPost]);
-
-    // PRE-LOAD EFFECT
-    useEffect(() => {
-        const fillBuffer = async () => {
-            if (preloadedPost || isPreloading.current || allLoaded) return;
-
-            // Find next candidate
-            let nextPostLite = relatedQueue.find(p => !loadedSlugs.current.has(p.slug));
-
-            if (!nextPostLite) {
-                // Try to fetch more if queue empty logic could be here, but for now we rely on main loader to handle empty queue
-                return;
-            }
-
-            try {
-                isPreloading.current = true;
-                console.log("Preloading background:", nextPostLite.slug);
-                const data = await getPostContent(nextPostLite.slug);
-                if (data?.post) {
-                    setPreloadedPost(data);
-                }
-            } catch (e) {
-                console.error("Preload failed", e);
-            } finally {
-                isPreloading.current = false;
-            }
-        };
-
-        const t = setTimeout(fillBuffer, 1000); // Small delay to prioritize main thread
-        return () => clearTimeout(t);
-    }, [relatedQueue, preloadedPost, allLoaded, posts]);
+    }, [loading, allLoaded, relatedQueue, posts]);
 
     // Intersection Observer for Infinite Scroll Trigger
     useEffect(() => {
@@ -208,7 +141,7 @@ export default function ArticleFeed({
             if (entries[0].isIntersecting && !loading && !allLoaded) {
                 loadNextPost();
             }
-        }, { threshold: 0.01, rootMargin: "2000px" });
+        }, { threshold: 0.1, rootMargin: "200px" });
 
         observer.observe(trigger);
         observerRef.current = observer;
@@ -255,8 +188,8 @@ export default function ArticleFeed({
                 <div key={post.id} className="flex flex-col w-full">
                     <Article
                         post={post}
-                        relatedPosts={EMPTY_RELATED_POSTS}
-                        onLiveUpdatesFound={handleLiveUpdatesFound}
+                        relatedPosts={[]}
+                        onLiveUpdatesActive={() => handleLiveUpdatesFound(post.slug)}
                     />
 
                     {/* Inject Ad between posts */}
@@ -269,14 +202,14 @@ export default function ArticleFeed({
             ))}
 
             {/* Load More Trigger */}
-            <div ref={loadMoreTriggerRef} className="w-full py-12 flex flex-col justify-center items-center gap-4 min-h-[500px]">
+            <div ref={loadMoreTriggerRef} className="w-full py-12 flex flex-col justify-center items-center gap-4">
                 {posts.length > 0 && postsWithLiveUpdates.current.has(posts[posts.length - 1].slug) ? (
                     <div className="bg-gray-100 text-gray-500 px-6 py-3 rounded-full text-sm font-medium flex items-center gap-2">
                         <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
                         Cobertura en vivo activa. Scroll infinito pausado.
                     </div>
                 ) : (
-                    loading && <ArticleSkeleton />
+                    loading && <Loader2 className="w-8 h-8 animate-spin text-red-600" />
                 )}
                 {allLoaded && <p className="text-gray-500">No hay más noticias relacionadas.</p>}
             </div>

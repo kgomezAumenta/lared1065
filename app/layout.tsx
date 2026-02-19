@@ -44,11 +44,11 @@ export default function RootLayout({
         </ApolloWrapper>
         <Script
           src="https://platform.twitter.com/widgets.js"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
         <Script
           src="https://www.instagram.com/embed.js"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
         <Script
           src="https://www.lared1061.com/wp-includes/js/wp-embed.min.js"

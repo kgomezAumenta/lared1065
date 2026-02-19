@@ -1,14 +1,17 @@
 "use client";
 
-import Script from "next/script";
 import { useEffect } from "react";
 
-export default function PostScripts() {
+export default function PostScripts({ slug }: { slug?: string }) {
     useEffect(() => {
-        // Function to activate WP embeds and re-scan for social widgets
-        const activeEmbeds = () => {
-            // Handle WP oEmbebed iframes
-            const iframes = document.querySelectorAll('iframe.wp-embedded-content');
+        const containerId = slug ? `post-${slug}` : null;
+
+        const initEmbeds = () => {
+            const container = containerId ? document.getElementById(containerId) : document;
+            if (!container) return;
+
+            // 1. WP Embeds (Native IFrames)
+            const iframes = container.querySelectorAll('iframe.wp-embedded-content');
             iframes.forEach((iframe: Element) => {
                 const el = iframe as HTMLIFrameElement;
                 if (el.getAttribute('data-src') && !el.src) {
@@ -26,45 +29,37 @@ export default function PostScripts() {
                 }
             });
 
-            // Trigger re-scans for social libraries if they are loaded
+            // 2. Twitter
             // @ts-ignore
-            if (typeof window !== 'undefined') {
+            if (window.twttr?.widgets) {
                 // @ts-ignore
-                if (window.instgrm) window.instgrm.Embeds.process();
+                window.twttr.widgets.load(container);
+            }
+
+            // 3. Instagram
+            // @ts-ignore
+            if (window.instgrm?.Embeds) {
                 // @ts-ignore
-                if (window.twttr) window.twttr.widgets.load();
+                window.instgrm.Embeds.process();
             }
         };
 
-        // Run immediately and periodically to catch lazy loads
-        activeEmbeds();
-        const t1 = setTimeout(activeEmbeds, 1000);
-        const t2 = setTimeout(activeEmbeds, 3000);
+        // Initial run
+        initEmbeds();
+
+        // Polling to catch late-loading libraries or dynamic content
+        // We poll every 500ms for 8 seconds to ensure we catch the libraries once they load from layout.tsx
+        const intervalId = setInterval(initEmbeds, 500);
+
+        const timeoutId = setTimeout(() => {
+            clearInterval(intervalId);
+        }, 30000);
 
         return () => {
-            clearTimeout(t1);
-            clearTimeout(t2);
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
         };
-    }, []);
+    }, [slug]);
 
-    return (
-        <>
-            <Script
-                src="https://platform.twitter.com/widgets.js"
-                strategy="afterInteractive"
-                onLoad={() => {
-                    // @ts-ignore
-                    if (window.twttr) window.twttr.widgets.load();
-                }}
-            />
-            <Script
-                src="//www.instagram.com/embed.js"
-                strategy="lazyOnload"
-                onLoad={() => {
-                    // @ts-ignore
-                    if (window.instgrm) window.instgrm.Embeds.process();
-                }}
-            />
-        </>
-    );
+    return null;
 }

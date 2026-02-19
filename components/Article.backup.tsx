@@ -1,4 +1,3 @@
-import { memo, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
@@ -46,52 +45,23 @@ const stripHtml = (html: string) => {
 // Process content to fix lazy loaded images and clean scripts
 const processContent = (content: string) => {
     if (!content) return "";
-    let processed = content;
-
     // Remove the lazyload placeholder src
-    processed = processed.replace(/src="data:image\/gif;base64,[^"]*"/g, '');
+    let processed = content.replace(/src="data:image\/gif;base64,[^"]*"/g, '');
     // Replace data-src with src
     processed = processed.replace(/data-src=/g, 'src=');
     // Replace data-srcset with srcset
     processed = processed.replace(/data-srcset=/g, 'srcset=');
     // Remove inline scripts to clean up and prevent conflicts
     processed = processed.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gim, "");
-
-    // Wrap Twitter Blockquotes
-    processed = processed.replace(
-        /<blockquote class="twitter-tweet"[^>]*>[\s\S]*?<\/blockquote>/gim,
-        '<div class="twitter-embed-wrapper" style="min-height: 500px; display: flex; justify-content: center; background: #f9f9f9; border-radius: 12px; margin: 2rem 0;">$&</div>'
-    );
-
-    // Wrap Instagram Blockquotes
-    processed = processed.replace(
-        /<blockquote class="instagram-media"[^>]*>[\s\S]*?<\/blockquote>/gim,
-        '<div class="instagram-embed-wrapper" style="min-height: 600px; display: flex; justify-content: center; background: #f9f9f9; border-radius: 12px; margin: 2rem 0;">$&</div>'
-    );
-
-    // Verify Iframes have aspect-ratio (Generic YouTube/Embeds)
-    processed = processed.replace(
-        /<iframe[^>]*>/gim,
-        (match) => {
-            if (match.includes('style="')) {
-                return match.replace('style="', 'style="aspect-ratio: 16/9; ');
-            } else {
-                return match.replace('<iframe', '<iframe style="aspect-ratio: 16/9;"');
-            }
-        }
-    );
-
     return processed;
 };
 
-const Article = memo(({ post, relatedPosts, onLiveUpdatesFound }: {
+export default function Article({ post, relatedPosts, onLiveUpdatesActive }: {
     post: Post,
     relatedPosts: any[],
-    onLiveUpdatesFound?: (slug: string) => void
-}) => {
+    onLiveUpdatesActive?: (active: boolean) => void
+}) {
     if (!post) return null;
-
-    const processedHtml = useMemo(() => processContent(post.content), [post.content]);
 
     return (
         <article className="flex-1 w-full max-w-[900px] mb-24 relative" id={`post-${post.slug}`} data-slug={post.slug} data-title={post.title}>
@@ -149,7 +119,7 @@ const Article = memo(({ post, relatedPosts, onLiveUpdatesFound }: {
             ) : null}
 
             {/* Post Live Updates (Minuto a Minuto) */}
-            <PostLiveUpdates slug={post.slug} onHasUpdates={() => onLiveUpdatesFound?.(post.slug)} />
+            <PostLiveUpdates slug={post.slug} onHasUpdates={onLiveUpdatesActive} />
 
             {/* Content */}
             <div
@@ -163,16 +133,14 @@ const Article = memo(({ post, relatedPosts, onLiveUpdatesFound }: {
                 [&_iframe]:w-full [&_iframe]:rounded-[15px] [&_iframe]:shadow-md [&_iframe]:mx-auto
                 [&_.wp-embedded-content]:max-w-full
                 "
-                dangerouslySetInnerHTML={{ __html: processedHtml }}
+                dangerouslySetInnerHTML={{ __html: processContent(post.content) }}
             />
 
             {/* Post Scripts (Analytics, Widgets, etc) */}
-            <PostScripts slug={post.slug} />
+            <PostScripts />
 
             {/* Divider for next post */}
             <div className="w-full h-px bg-gray-200 mt-12 mb-12"></div>
         </article>
     );
-});
-
-export default Article;
+}

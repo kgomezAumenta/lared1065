@@ -225,9 +225,9 @@ export default async function PostPage({
         <main className="container mx-auto px-4 py-8 pb-32">
 
             {/* Top Red Ad Banner */}
-            <div className="mb-12">
+            {/* <div className="mb-12">
                 <AdvertisingBanner slotId="2850891862" placeholderText="Anuncio Top" />
-            </div>
+            </div> */}
 
             <div className="flex flex-col xl:flex-row gap-12 justify-center items-start">
 
@@ -295,11 +295,11 @@ export default async function PostPage({
                     </div>
 
                     {/* Sidebar Ad Vertical - Grey */}
-                    <AdvertisingBanner
+                    {/* <AdvertisingBanner
                         slotId="4243864586"
                         placeholderText="Anuncio Sidebar"
                         className="w-full min-h-[600px] bg-[#F0F0F0] rounded-[15px]"
-                    />
+                    /> */}
 
                 </aside>
 

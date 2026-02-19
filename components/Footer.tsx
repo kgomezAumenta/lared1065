@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Twitter, Instagram, Youtube, Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
     return (
         <footer className="bg-[#FF0000] text-white py-12 pb-32 text-sm">
             {/* pb-32 to account for the fixed player if needed, layout says pb-32 but mostly for player space */}
@@ -11,7 +17,7 @@ export default function Footer() {
                 {/* Column 1: Logo & About */}
                 <div className="flex flex-col gap-6">
                     {/* Logo SVG: White Pill, Red Text (Inverted for Red Background) */}
-                    <div className="w-48">
+                    <div className="w-48 cursor-pointer" onClick={scrollToTop}>
                         <svg width="316" height="87" viewBox="0 0 316 87" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
                             <path d="M272.272 0H43.7281C19.5777 0 0 19.4756 0 43.5C0 67.5244 19.5777 87 43.7281 87H272.272C296.422 87 316 67.5244 316 43.5C316 19.4756 296.422 0 272.272 0Z" fill="white" />
                             <path fillRule="evenodd" clipRule="evenodd" d="M78.2858 26.8079C79.2781 37.9234 80.2988 49.0766 81.272 59.972C80.3462 60.2738 71.0558 60.3084 69.2672 60.0506C69.1566 58.7241 68.9891 57.1806 68.869 55.7754C68.4993 55.744 68.196 55.7063 67.8989 55.7063C64.7231 55.6937 61.5473 55.7189 58.3715 55.6843C57.6668 55.6748 57.2339 55.9075 56.8547 56.4859C56.2259 57.4572 55.4959 58.3625 54.8544 59.3245C54.5195 59.8369 54.1118 60.0758 53.5051 60.0066C53.3503 59.9877 53.1986 60.0066 53.0438 60.0066H20.6474C20.8054 59.4596 20.8939 59.1013 21.0108 58.7461C24.3794 48.5391 27.7416 38.3321 31.1102 28.1219C31.4515 27.0877 31.4515 27.0751 32.5575 27.0751H41.3865C41.7246 27.0783 42.0659 27.1254 42.5684 27.1537C39.9866 34.9999 37.4397 42.733 34.8485 50.6138H36.1188C40.192 50.6138 44.2558 50.5918 48.3227 50.6326C49.1506 50.6421 49.6689 50.3874 50.1492 49.7304C55.5686 42.4532 61.0291 35.2074 66.4358 27.9239C67.052 27.0877 67.6904 26.7545 68.7332 26.7828C71.4508 26.8551 74.1589 26.8048 76.8702 26.8048H78.2827L78.2858 26.8079ZM68.3982 40.4539C68.3034 40.4225 68.2118 40.3879 68.1201 40.3533C66.4137 42.7738 64.6852 45.1818 62.9219 47.7312H68.7237C68.6099 45.2541 68.5025 42.8524 68.3982 40.4539Z" fill="#FF0000" />
