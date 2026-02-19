@@ -63,9 +63,9 @@ export default function Header() {
 
                         {/* Mobile Exchange Rate */}
                         {exchangeRate && (
-                            <div className="md:hidden flex items-center gap-1 text-[10px] uppercase font-bold tracking-tight">
-                                <span className="opacity-80">Tasa de Cambio:</span>
-                                <span className="text-[#FFD700] font-extrabold mr-1">Q{exchangeRate.sell.toFixed(2)}</span>
+                            <div className="md:hidden flex items-center gap-1 text-xs uppercase font-bold tracking-tight text-white">
+                                <span className="opacity-100">TASA DE CAMBIO:</span>
+                                <span className="font-extrabold mr-1">Q{exchangeRate.sell.toFixed(2)}</span>
                             </div>
                         )}
 

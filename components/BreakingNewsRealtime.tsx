@@ -69,6 +69,10 @@ export default function BreakingNewsRealtime() {
         }
     };
 
+    if (!loading && news.length === 0) {
+        return null; // Hide entire section if no news
+    }
+
     if (loading) {
         return (
             <div className="bg-[#F7F7F7] rounded-[20px] p-6 flex flex-col gap-4 min-h-[200px] animate-pulse">
