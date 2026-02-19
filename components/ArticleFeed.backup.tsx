@@ -189,7 +189,7 @@ export default function ArticleFeed({
                     <Article
                         post={post}
                         relatedPosts={[]}
-                        onLiveUpdatesActive={() => handleLiveUpdatesFound(post.slug)}
+                        onLiveUpdatesFound={() => handleLiveUpdatesFound(post.slug)}
                     />
 
                     {/* Inject Ad between posts */}

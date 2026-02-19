@@ -430,7 +430,7 @@ export default async function Home() {
           {/* Main Featured Post (Left - Larger) */}
           {featuredPost && (
             <div className="flex-1 flex flex-col gap-4 relative">
-              <Link href={`/posts/${featuredPost.slug}`} className="block w-full aspect-[21/9] relative overflow-hidden rounded-[20px]">
+              <Link href={`/posts/${featuredPost.slug}`} className="block w-full aspect-[16/9] lg:aspect-[21/9] relative overflow-hidden rounded-[20px]">
                 {featuredPost.featuredImage?.node?.sourceUrl ? (
                   <Image
                     src={featuredPost.featuredImage.node.sourceUrl}
