@@ -252,6 +252,7 @@ export default async function Home() {
               src={post.featuredImage.node.sourceUrl}
               alt={post.title}
               fill
+              sizes="100px"
               className="object-cover"
             />
           ) : <div className="w-full h-full bg-gray-200" />}
@@ -287,6 +288,7 @@ export default async function Home() {
                   src={sideFutbolNacional.featuredImage.node.sourceUrl}
                   alt={sideFutbolNacional.title}
                   fill
+                  sizes="100px"
                   className="object-cover"
                 />
               ) : <div className="w-full h-full bg-gray-200" />}
@@ -314,6 +316,7 @@ export default async function Home() {
                   src={sideInternacional.featuredImage.node.sourceUrl}
                   alt={sideInternacional.title}
                   fill
+                  sizes="100px"
                   className="object-cover"
                 />
               ) : <div className="w-full h-full bg-gray-200" />}
@@ -341,6 +344,7 @@ export default async function Home() {
                   src={sideNacional.featuredImage.node.sourceUrl}
                   alt={sideNacional.title}
                   fill
+                  sizes="100px"
                   className="object-cover"
                 />
               ) : <div className="w-full h-full bg-gray-200" />}
@@ -368,6 +372,7 @@ export default async function Home() {
                   src={sideFutbolInternacional.featuredImage.node.sourceUrl}
                   alt={sideFutbolInternacional.title}
                   fill
+                  sizes="100px"
                   className="object-cover"
                 />
               ) : <div className="w-full h-full bg-gray-200" />}
@@ -395,6 +400,7 @@ export default async function Home() {
                   src={sideEconomia.featuredImage.node.sourceUrl}
                   alt={sideEconomia.title}
                   fill
+                  sizes="100px"
                   className="object-cover"
                 />
               ) : <div className="w-full h-full bg-gray-200" />}
@@ -437,6 +443,7 @@ export default async function Home() {
                     alt={featuredPost.featuredImage.node.altText || featuredPost.title}
                     fill
                     priority
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                     className="object-cover object-top hover:scale-105 transition-transform duration-700"
                   />
                 ) : (
@@ -530,6 +537,7 @@ export default async function Home() {
                           src={post.featuredImage.node.sourceUrl}
                           alt={post.title}
                           fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           className="object-cover"
                         />
                       )}
@@ -574,6 +582,7 @@ export default async function Home() {
                             src={post.featuredImage.node.sourceUrl}
                             alt={post.title}
                             fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
                             className="object-cover"
                           />
                         )}
@@ -629,6 +638,7 @@ export default async function Home() {
                           src={post.featuredImage.node.sourceUrl}
                           alt={post.title}
                           fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           className="object-cover"
                         />
                       )}
@@ -675,6 +685,7 @@ export default async function Home() {
                             src={post.featuredImage.node.sourceUrl}
                             alt={post.title}
                             fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
                             className="object-cover"
                           />
                         )}
@@ -805,6 +816,7 @@ export default async function Home() {
                       src={post.featuredImage.node.sourceUrl}
                       alt={post.title}
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
@@ -856,6 +868,7 @@ export default async function Home() {
                       src={post.featuredImage.node.sourceUrl}
                       alt={post.title}
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover hover:scale-105 transition-transform duration-500"
                     />
                   ) : (

@@ -9,11 +9,8 @@ export default function RadioPlayer() {
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(false);
     const [player, setPlayer] = useState<any>(null);
-    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-        setIsMounted(true);
-
         // Define global callbacks required by the widget
         window.appReady = (object: any) => {
             console.log('Triton Player Ready', object);
@@ -22,6 +19,7 @@ export default function RadioPlayer() {
             setIsLoading(false);
 
             // Hook into player events to sync state
+            // We use the object directly as it seemed to work best for the initial playback
             if (object.addEventListener) {
                 object.addEventListener('stream-status', (e: any) => {
                     const status = e.data?.code;
@@ -55,6 +53,7 @@ export default function RadioPlayer() {
         if (isPlaying) {
             console.log('Stopping player...');
             player.trigger('stop');
+            // Optimistic update
             setIsPlaying(false);
             setIsBuffering(false);
         } else {
@@ -62,21 +61,28 @@ export default function RadioPlayer() {
             setIsBuffering(true);
             player.trigger('play', { station: 'LA_RED' });
 
+            // Safety timeout: if audio doesn't start in 10s, stop buffering spinner so user isn't stuck
             setTimeout(() => {
                 setIsBuffering(false);
             }, 10000);
         }
     };
 
-    if (!isMounted) return null;
-
     return (
         <>
+            {/* 
+                Triton Digital Widgets Script 
+                Added to footer essentially via this component in Layout
+            */}
             <Script
                 src="//widgets.listenlive.co/1.0/tdwidgets.min.js"
                 strategy="lazyOnload"
             />
 
+            {/* 
+                Hidden Player Container 
+                NOTE: Using -left-[9999px] because some widgets won't initialize if display:none or w-0/h-0 
+            */}
             <div className="fixed bottom-0 left-0 z-50">
                 <td-player
                     id="td-player"
@@ -88,6 +94,7 @@ export default function RadioPlayer() {
                     station="LA_RED"
                     onappready="appReady"
                     defaultcoverart="https://www.lared1061.com/wp-content/uploads/2025/04/Diseno-sin-titulo-76.png"
+                    class="w-full"
                 >
                 </td-player>
             </div>
