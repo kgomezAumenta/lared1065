@@ -98,9 +98,11 @@ export default function Footer() {
 
             {/* Powered By */}
             <div className="mt-12 container mx-auto px-4">
-                <div className="border-t border-white/30 pt-8 flex justify-between items-center">
-                    <div className="text-sm opacity-80">
-                        &copy; {new Date().getFullYear()} RCN. Todos los derechos reservados.
+                <div className="border-t border-white/30 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="text-sm opacity-80 flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                        <span>&copy; {new Date().getFullYear()} RCN. Todos los derechos reservados.</span>
+                        <span className="hidden md:inline">|</span>
+                        <Link href="/terminos-y-condiciones" className="hover:underline text-center">Términos y Condiciones</Link>
                     </div>
                     <div className="flex flex-col items-end gap-1">
                         <span className="text-[10px] uppercase tracking-wider font-bold opacity-80">POWERED BY</span>

@@ -255,6 +255,7 @@ export default async function PostPage({
                                                     src={rPost.featuredImage.node.sourceUrl}
                                                     alt={rPost.featuredImage.node.altText || rPost.title}
                                                     fill
+                                                    sizes="100px"
                                                     className="object-cover"
                                                 />
                                             )}
