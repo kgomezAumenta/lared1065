@@ -87,11 +87,11 @@ export default function Footer() {
                 <div className="flex flex-col gap-4">
                     <h3 className="text-white font-bold text-2xl">Síguenos</h3>
                     <div className="flex gap-4">
-                        <a href="https://www.facebook.com/lared1061" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Facebook size={24} /></a>
-                        <a href="https://x.com/Lared106" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Twitter size={24} /></a>
-                        <a href="https://www.instagram.com/lared1061/" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Instagram size={24} /></a>
-                        <a href="https://www.youtube.com/@lared1061" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Youtube size={24} /></a>
-                        <a href="https://www.tiktok.com/@lared1061" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Tiktok size={24} /></a>
+                        <a href="https://www.facebook.com/lared1061" aria-label="Facebook" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Facebook size={24} /></a>
+                        <a href="https://x.com/Lared106" aria-label="Twitter" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Twitter size={24} /></a>
+                        <a href="https://www.instagram.com/lared1061/" aria-label="Instagram" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Instagram size={24} /></a>
+                        <a href="https://www.youtube.com/@lared1061" aria-label="YouTube" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Youtube size={24} /></a>
+                        <a href="https://www.tiktok.com/@lared1061" aria-label="TikTok" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Tiktok size={24} /></a>
                     </div>
                 </div>
             </div>

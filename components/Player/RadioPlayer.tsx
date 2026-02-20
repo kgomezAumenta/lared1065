@@ -18,6 +18,15 @@ export default function RadioPlayer() {
             window.widgetPlayer = object;
             setIsLoading(false);
 
+            // Inyectar etiquetas de accesibilidad a los elementos inyectados por el SDK de Triton
+            setTimeout(() => {
+                const playBtn = document.getElementById('td-player-bar__nowplaying__cover-art__media-controls--play');
+                if (playBtn) playBtn.setAttribute('aria-label', 'Reproducir/Pausar Radio');
+
+                const coverImage = document.querySelector('.tdcoverart');
+                if (coverImage) coverImage.setAttribute('alt', 'Portada de la estación de radio');
+            }, 1500); // Give the widget time to render DOM nodes
+
             // Hook into player events to sync state
             // We use the object directly as it seemed to work best for the initial playback
             if (object.addEventListener) {

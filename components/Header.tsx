@@ -86,6 +86,7 @@ export default function Header() {
                         <button
                             className="md:hidden text-white hover:bg-red-700 rounded-lg transition-colors p-1"
                             onClick={toggleMenu}
+                            aria-label="Abrir menú de navegación"
                         >
                             <Menu size={28} />
                         </button>
@@ -93,12 +94,12 @@ export default function Header() {
 
                     {/* Desktop Currency Rate */}
                     {exchangeRate && (
-                        <div className="hidden md:flex items-center gap-2 text-xs font-bold">
+                        <div className="hidden md:flex items-center gap-2 text-xs font-bold text-white">
                             <span>Tasa de Cambio Banguat - </span>
-                            <span className="font-extrabold">Compra:</span>
-                            <span>Q{exchangeRate.buy.toFixed(2)}</span>
-                            <span className="font-extrabold">Venta:</span>
-                            <span>Q{exchangeRate.sell.toFixed(2)}</span>
+                            <span className="font-extrabold text-white">Compra:</span>
+                            <span className="text-white">Q{exchangeRate.buy.toFixed(2)}</span>
+                            <span className="font-extrabold text-white">Venta:</span>
+                            <span className="text-white">Q{exchangeRate.sell.toFixed(2)}</span>
                         </div>
                     )}
                 </div>
@@ -139,7 +140,7 @@ export default function Header() {
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="bg-transparent border-none outline-none text-xl text-gray-600 placeholder-gray-400 w-full"
                                 />
-                                <button type="submit">
+                                <button type="submit" aria-label="Buscar noticias">
                                     <Search size={24} className="text-gray-500" />
                                 </button>
                             </div>
@@ -206,7 +207,7 @@ export default function Header() {
                         {/* Drawer Header */}
                         <div className="p-4 border-b flex justify-between items-center bg-[#E40000] text-white">
                             <span className="font-bold text-xl italic uppercase">Menú</span>
-                            <button onClick={toggleMenu} className="p-1 hover:bg-red-700 rounded-full transition-colors">
+                            <button onClick={toggleMenu} className="p-1 hover:bg-red-700 rounded-full transition-colors" aria-label="Cerrar menú">
                                 <X size={24} />
                             </button>
                         </div>
@@ -224,7 +225,7 @@ export default function Header() {
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="bg-transparent border-none outline-none text-sm w-full text-gray-700"
                                 />
-                                <button type="submit">
+                                <button type="submit" aria-label="Buscar en menú móvil">
                                     <Search size={18} className="text-gray-400" />
                                 </button>
                             </form>
@@ -273,10 +274,10 @@ export default function Header() {
                         <div className="p-6 border-t bg-gray-50">
                             <p className="text-xs text-gray-500 font-bold uppercase mb-4 text-center">Síguenos en</p>
                             <div className="flex justify-center gap-6 text-gray-600">
-                                <a href="#" className="hover:text-[#E40000] transition-colors"><Facebook size={20} /></a>
-                                <a href="#" className="hover:text-[#E40000] transition-colors"><Twitter size={20} /></a>
-                                <a href="#" className="hover:text-[#E40000] transition-colors"><Instagram size={20} /></a>
-                                <a href="#" className="hover:text-[#E40000] transition-colors"><Youtube size={20} /></a>
+                                <a href="#" aria-label="Facebook" className="hover:text-[#E40000] transition-colors"><Facebook size={20} /></a>
+                                <a href="#" aria-label="Twitter" className="hover:text-[#E40000] transition-colors"><Twitter size={20} /></a>
+                                <a href="#" aria-label="Instagram" className="hover:text-[#E40000] transition-colors"><Instagram size={20} /></a>
+                                <a href="#" aria-label="YouTube" className="hover:text-[#E40000] transition-colors"><Youtube size={20} /></a>
                             </div>
                         </div>
                     </div>

@@ -85,4 +85,5 @@ export const helveticaNeue = localFont({
     ],
     variable: '--font-helvetica',
     preload: false,
+    display: 'swap',
 });

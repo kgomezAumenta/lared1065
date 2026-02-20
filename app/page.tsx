@@ -443,6 +443,7 @@ export default async function Home() {
                     alt={featuredPost.featuredImage.node.altText || featuredPost.title}
                     fill
                     priority
+                    fetchPriority="high"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                     className="object-cover object-top hover:scale-105 transition-transform duration-700"
                   />
@@ -537,7 +538,8 @@ export default async function Home() {
                           src={post.featuredImage.node.sourceUrl}
                           alt={post.title}
                           fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          quality={85}
                           className="object-cover"
                         />
                       )}
@@ -554,7 +556,7 @@ export default async function Home() {
                     </Link>
 
                     <div className="flex justify-between items-center w-full mt-1">
-                      <span className="text-[#9F9F9F] text-xs font-normal">
+                      <span className="text-gray-600 text-xs font-normal">
                         {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                       </span>
                     </div>
@@ -583,6 +585,7 @@ export default async function Home() {
                             alt={post.title}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
+                            quality={80}
                             className="object-cover"
                           />
                         )}
@@ -599,7 +602,7 @@ export default async function Home() {
                       </Link>
 
                       <div className="flex justify-between items-center w-full mt-1">
-                        <span className="text-[#9F9F9F] text-xs font-normal">
+                        <span className="text-gray-600 text-xs font-normal">
                           {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
@@ -638,7 +641,8 @@ export default async function Home() {
                           src={post.featuredImage.node.sourceUrl}
                           alt={post.title}
                           fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          quality={85}
                           className="object-cover"
                         />
                       )}
@@ -657,7 +661,7 @@ export default async function Home() {
                       {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
                     </p>
                     <div className="flex justify-between items-center w-full mt-1">
-                      <span className="text-[#9F9F9F] text-xs font-normal">
+                      <span className="text-gray-600 text-xs font-normal">
                         {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                       </span>
                     </div>
@@ -686,6 +690,7 @@ export default async function Home() {
                             alt={post.title}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
+                            quality={80}
                             className="object-cover"
                           />
                         )}
@@ -704,7 +709,7 @@ export default async function Home() {
                         {stripHtml(post.excerpt) || "Lorem ipsum dolor sit amet..."}
                       </p>
                       <div className="flex justify-between items-center w-full mt-1">
-                        <span className="text-[#9F9F9F] text-xs font-normal">
+                        <span className="text-gray-600 text-xs font-normal">
                           {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
@@ -754,7 +759,7 @@ export default async function Home() {
             <div className="flex flex-col gap-0 border border-[#DCDCDC] rounded-[15px] overflow-hidden">
               {subFeaturedPosts.map((post: Post, i: number) => (
                 <div key={post.id} className="p-5 border-b border-[#DCDCDC] last:border-0 flex gap-6 items-center hover:bg-gray-50 transition-colors">
-                  <span className="text-[#9F9F9F] text-xl font-bold">0{i + 1}</span>
+                  <span className="text-gray-600 text-xl font-bold">0{i + 1}</span>
                   <div className="flex flex-col gap-1">
                     <span className="text-[#E40000] text-xs font-bold uppercase">
                       {post.categories?.nodes[0]?.name || "NOTICIAS"}
@@ -812,6 +817,7 @@ export default async function Home() {
                       alt={post.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={85}
                       className="object-cover hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
@@ -830,7 +836,7 @@ export default async function Home() {
                 </Link>
 
                 <div className="flex justify-between items-center w-full mt-1">
-                  <span className="text-[#9F9F9F] text-xs font-normal">
+                  <span className="text-gray-600 text-xs font-normal">
                     {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
@@ -864,6 +870,7 @@ export default async function Home() {
                       alt={post.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={85}
                       className="object-cover hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
@@ -882,7 +889,7 @@ export default async function Home() {
                 </Link>
 
                 <div className="flex justify-between items-center w-full mt-1">
-                  <span className="text-[#9F9F9F] text-xs font-normal">
+                  <span className="text-gray-600 text-xs font-normal">
                     {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
