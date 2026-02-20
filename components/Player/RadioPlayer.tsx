@@ -87,7 +87,7 @@ export default function RadioPlayer() {
                 <td-player
                     id="td-player"
                     // @ts-ignore
-                    type="mini"
+                    type="classic"
                     highlightcolor="#333333"
                     primarycolor="#FFFFFF"
                     secondarycolor="#E40000"
