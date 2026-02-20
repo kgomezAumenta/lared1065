@@ -53,6 +53,9 @@ export default function BreakingNewsRealtime() {
 
             setNews(filtered);
             setLoading(false);
+        }, (error) => {
+            console.error("Firestore Error in Minuto a Minuto:", error);
+            setLoading(false);
         });
 
         return () => unsubscribe();
@@ -93,7 +96,7 @@ export default function BreakingNewsRealtime() {
                         <div className="w-2 h-2 bg-white rounded-full" />
                     </div>
                     <Link href="/minuto-a-minuto" className="hover:underline decoration-black/30 underline-offset-4 transition">
-                        <h3 className="text-xl font-bold text-black uppercase cursor-pointer">Minuto a Minuto</h3>
+                        <h3 className="text-lg font-bold text-black uppercase cursor-pointer leading-tight">LO QUE NECESITAS SABER</h3>
                     </Link>
                 </div>
 
@@ -105,12 +108,12 @@ export default function BreakingNewsRealtime() {
                                 <div className="w-4 h-4 rounded-full border-[2px] border-[#E40000] bg-white" />
                             </div>
                             <div className="flex flex-col gap-1 w-full">
-                                <span className="text-[#E40000] text-sm font-bold">
+                                <span className="text-[#E40000] text-xs font-bold">
                                     {item.timestamp?.toDate
                                         ? item.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                         : ''}
                                 </span>
-                                <h4 className="text-lg font-bold text-black leading-tight">
+                                <h4 className="text-base font-bold text-black leading-tight">
                                     {item.title}
                                 </h4>
 

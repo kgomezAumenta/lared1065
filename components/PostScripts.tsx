@@ -30,17 +30,31 @@ export default function PostScripts({ slug }: { slug?: string }) {
             });
 
             // 2. Twitter
-            // @ts-ignore
-            if (window.twttr?.widgets) {
+            const twitterEmbeds = container.querySelectorAll('.twitter-tweet:not(.twitter-tweet-rendered)');
+            if (twitterEmbeds.length > 0) {
                 // @ts-ignore
-                window.twttr.widgets.load(container);
+                if (window.twttr?.widgets?.load) {
+                    try {
+                        // @ts-ignore
+                        window.twttr.widgets.load(container);
+                    } catch (e) {
+                        console.error("Twitter embed error", e);
+                    }
+                }
             }
 
             // 3. Instagram
-            // @ts-ignore
-            if (window.instgrm?.Embeds) {
+            const igEmbeds = container.querySelectorAll('.instagram-media:not(.instagram-media-rendered)');
+            if (igEmbeds.length > 0) {
                 // @ts-ignore
-                window.instgrm.Embeds.process();
+                if (window.instgrm?.Embeds?.process) {
+                    try {
+                        // @ts-ignore
+                        window.instgrm.Embeds.process();
+                    } catch (e) {
+                        console.error("Instagram embed error", e);
+                    }
+                }
             }
         };
 

@@ -2,16 +2,29 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Menu, X, Facebook, Twitter, Instagram, Youtube, TrendingUp } from "lucide-react";
+import { Search, Menu, X, Facebook, Twitter, Instagram, Youtube, TrendingUp, ChevronDown } from "lucide-react";
 import { getExchangeRate } from "@/app/actions/banguat";
 import WeatherWidget from "./WeatherWidget";
 
-const NAV_LINKS = [
+type NavLink = {
+    href?: string;
+    label: string;
+    subLinks?: { href: string; label: string; }[];
+};
+
+const NAV_LINKS: NavLink[] = [
     { href: "/", label: "Inicio" },
     { href: "/category/nacionales", label: "Nacionales" },
     { href: "/category/internacionales", label: "Internacionales" },
-    { href: "/category/futbol-nacional", label: "Futbol" },
-    { href: "/category/deporte-nacional", label: "Deporte" },
+    {
+        label: "Deportes",
+        subLinks: [
+            { href: "/category/futbol-nacional", label: "Fútbol Nacional" },
+            { href: "/category/futbol-internacional", label: "Fútbol Internacional" },
+            { href: "/category/deporte-nacional", label: "Deporte Nacional" },
+            { href: "/category/deporte-internacional", label: "Deporte Internacional" },
+        ]
+    },
     { href: "/category/economia", label: "Economía" },
     { href: "/programacion", label: "Programación" },
 ];
@@ -144,12 +157,35 @@ export default function Header() {
             {/* Navigation Bar - RED BACKGROUND */}
             <nav className="bg-[#E40000] text-white shadow-md hidden md:block">
                 <div className="container mx-auto px-4 flex justify-center">
-                    <ul className="flex items-center gap-12 overflow-x-auto py-4 text-xl font-normal text-white/90">
+                    <ul className="flex items-center gap-8 overflow-visible py-4 text-xl font-normal text-white/90">
                         {NAV_LINKS.map((link) => (
-                            <li key={link.href}>
-                                <Link href={link.href} className="hover:text-white hover:font-bold transition-all">
-                                    {link.label}
-                                </Link>
+                            <li key={link.href || link.label} className="relative group">
+                                {link.href ? (
+                                    <Link href={link.href} className="hover:text-white hover:font-bold transition-all py-2">
+                                        {link.label}
+                                    </Link>
+                                ) : (
+                                    <span className="cursor-pointer hover:text-white hover:font-bold transition-all flex items-center gap-1 py-2">
+                                        {link.label}
+                                        <ChevronDown size={20} className="group-hover:rotate-180 transition-transform duration-300" />
+                                    </span>
+                                )}
+
+                                {link.subLinks && (
+                                    <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                                        <div className="bg-white rounded-[15px] shadow-2xl overflow-hidden border border-gray-100">
+                                            <ul className="flex flex-col py-2">
+                                                {link.subLinks.map((sub) => (
+                                                    <li key={sub.href}>
+                                                        <Link href={sub.href} className="block px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#E40000] transition-colors border-b border-gray-50 last:border-0">
+                                                            {sub.label}
+                                                        </Link>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
                             </li>
                         ))}
                     </ul>
@@ -198,14 +234,36 @@ export default function Header() {
                         <nav className="flex-1 overflow-y-auto p-4">
                             <ul className="space-y-4">
                                 {NAV_LINKS.map((link) => (
-                                    <li key={link.href}>
-                                        <Link
-                                            href={link.href}
-                                            className="block py-2 text-gray-800 font-bold uppercase text-sm border-b border-gray-100 hover:text-[#E40000] transition-colors"
-                                            onClick={toggleMenu}
-                                        >
-                                            {link.label}
-                                        </Link>
+                                    <li key={link.href || link.label} className="border-b border-gray-100 pb-2">
+                                        {link.href ? (
+                                            <Link
+                                                href={link.href}
+                                                className="block py-2 text-gray-800 font-bold uppercase text-sm hover:text-[#E40000] transition-colors"
+                                                onClick={toggleMenu}
+                                            >
+                                                {link.label}
+                                            </Link>
+                                        ) : (
+                                            <div className="py-2">
+                                                <span className="flex items-center gap-2 text-[#E40000] font-bold uppercase text-sm mb-3">
+                                                    {link.label}
+                                                    <ChevronDown size={16} />
+                                                </span>
+                                                <ul className="pl-4 space-y-3 border-l-2 border-[#E40000]/20 ml-2">
+                                                    {link.subLinks?.map((sub) => (
+                                                        <li key={sub.href}>
+                                                            <Link
+                                                                href={sub.href}
+                                                                className="block text-gray-600 font-bold text-sm hover:text-[#E40000] transition-colors"
+                                                                onClick={toggleMenu}
+                                                            >
+                                                                {sub.label}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
                                     </li>
                                 ))}
                             </ul>

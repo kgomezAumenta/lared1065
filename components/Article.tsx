@@ -81,6 +81,23 @@ const processContent = (content: string) => {
         }
     );
 
+    // Fix Google Drive Iframes (CSP blocking /view -> needs /preview)
+    processed = processed.replace(
+        /https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/view/gim,
+        'https://drive.google.com/file/d/$1/preview'
+    );
+
+    // Fix Omny.fm CORS fonts by ensuring iframe sandbox has allow-same-origin
+    processed = processed.replace(
+        /<iframe[^>]*sandbox="([^"]*)"[^>]*>/gim,
+        (match, sandboxValue) => {
+            if (!sandboxValue.includes('allow-same-origin')) {
+                return match.replace(`sandbox="${sandboxValue}"`, `sandbox="${sandboxValue} allow-same-origin"`);
+            }
+            return match;
+        }
+    );
+
     return processed;
 };
 

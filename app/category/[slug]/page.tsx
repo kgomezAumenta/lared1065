@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
 import { generateSeoMetadata, SeoFragment } from "@/lib/seo";
+import BreakingNewsRealtime from "@/components/BreakingNewsRealtime";
 
 interface Post {
     id: string;
@@ -93,11 +94,17 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
         count
         ${SeoFragment}
       }
-      sidebarPosts: posts(first: 5, where: { categoryName: "internacionales" }) {
+      latestPosts: posts(first: 5) {
         nodes {
           id
           title
           slug
+          categories {
+            nodes {
+              name
+              slug
+            }
+          }
           featuredImage {
             node {
               sourceUrl
@@ -146,7 +153,7 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
             posts: json.data?.posts?.nodes || [],
             pageInfo: json.data?.posts?.pageInfo || null,
             categoryInfo: json.data?.category || null,
-            sidebarPosts: json.data?.sidebarPosts?.nodes || [],
+            latestPosts: json.data?.latestPosts?.nodes || [],
             categories: json.data?.categories?.nodes || [],
         };
     } catch (error) {
@@ -155,7 +162,7 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
             posts: [],
             pageInfo: null,
             categoryInfo: null,
-            sidebarPosts: [],
+            latestPosts: [],
             categories: []
         };
     }
@@ -215,7 +222,7 @@ export default async function CategoryPage({
     const before = typeof resolvedSearchParams.before === 'string' ? resolvedSearchParams.before : undefined;
     const page = Number(resolvedSearchParams.page) || 1;
 
-    const { posts, pageInfo, categoryInfo, sidebarPosts, categories } = await getCategoryData(slug, after, before);
+    const { posts, pageInfo, categoryInfo, latestPosts, categories } = await getCategoryData(slug, after, before);
 
     const title = categoryInfo?.name || slug.replace("-", " ").toUpperCase();
 
@@ -231,7 +238,7 @@ export default async function CategoryPage({
 
 
             {/* Advertising Banner (From Figma) */}
-            <AdvertisingBanner slotId="2850891862" className="rounded-[15px] mb-12 shadow-sm min-h-[150px] w-full" />
+            <AdvertisingBanner className="rounded-[15px] mb-12 shadow-sm min-h-[150px] w-full" />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
                 {/* Main Content - 3 columns */}
@@ -251,7 +258,7 @@ export default async function CategoryPage({
                                 if (item.type === 'ad') {
                                     return (
                                         <div key={item.id} className="h-full">
-                                            <AdvertisingBanner slotId="1502151177" className="h-full rounded-[15px] px-6 py-8" />
+                                            <AdvertisingBanner className="h-full rounded-[15px] px-6 py-8" />
                                         </div>
                                     );
                                 }
@@ -281,7 +288,7 @@ export default async function CategoryPage({
                                         </div>
 
                                         {/* Title */}
-                                        <h2 className="font-bold text-[18px] leading-tight text-black group-hover:text-[#E40000] transition-colors line-clamp-3">
+                                        <h2 className="font-bold text-base leading-tight text-black group-hover:text-[#E40000] transition-colors line-clamp-3">
                                             {post.title}
                                         </h2>
 
@@ -343,39 +350,36 @@ export default async function CategoryPage({
 
                 {/* Sidebar */}
                 <aside className="lg:col-span-1 space-y-8">
-                    {/* Internacionales Section (Mini List) */}
-                    <div className="flex flex-col gap-4">
-                        <div className="bg-[#E40000] text-center text-white font-bold text-[18px] py-2 rounded-[15px] uppercase">
-                            Internacionales
+                    {/* AHORA Section - Realtime Firebase */}
+                    <div className="hidden md:block">
+                        <BreakingNewsRealtime />
+                    </div>
+
+                    {/* Lo Más Reciente de La Red */}
+                    <div className="hidden md:flex flex-col">
+                        <div className="bg-[#FF0000] rounded-[15px] py-3 px-4 mb-4 flex justify-center items-center">
+                            <h3 className="text-lg font-bold text-white text-center">LO MÁS RECIENTE DE LA RED</h3>
                         </div>
-                        <div className="space-y-4">
-                            {sidebarPosts.slice(0, 4).map((post: Post) => (
-                                <Link key={post.id} href={`/posts/${post.slug}`} className="group flex gap-3 border-b border-[#E3E3E3] pb-3 last:border-0 items-center">
-                                    <div className="relative w-[80px] h-[80px] shrink-0 overflow-hidden rounded-[10px] bg-gray-200">
-                                        {post.featuredImage?.node?.sourceUrl && (
-                                            <Image
-                                                src={post.featuredImage.node.sourceUrl}
-                                                alt={post.featuredImage.node.altText || post.title}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 flex flex-col justify-center gap-1">
-                                        <span className="text-[#E40000] text-[10px] font-bold uppercase block">
-                                            Internacionales
+
+                        <div className="flex flex-col gap-0 border border-[#DCDCDC] rounded-[15px] overflow-hidden bg-white">
+                            {latestPosts.map((post: Post, i: number) => (
+                                <div key={post.id} className="p-4 border-b border-[#DCDCDC] last:border-0 flex gap-4 items-center hover:bg-gray-50 transition-colors">
+                                    <span className="text-[#9F9F9F] text-lg font-bold">0{i + 1}</span>
+                                    <div className="flex flex-col gap-1 w-full">
+                                        <span className="text-[#E40000] text-[10px] font-bold uppercase">
+                                            {post.categories?.nodes[0]?.name || "NOTICIAS"}
                                         </span>
-                                        <h3 className="text-[14px] text-black font-bold leading-tight group-hover:text-[#E40000] transition-colors line-clamp-3">
-                                            {post.title}
-                                        </h3>
+                                        <Link href={`/posts/${post.slug}`}>
+                                            <h4 className="text-sm font-bold text-black leading-tight hover:text-[#E40000] transition-colors">{post.title}</h4>
+                                        </Link>
                                     </div>
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Ad Box - LARGE RED BOX below sidebar list */}
-                    <AdvertisingBanner slotId="1330868584" className="rounded-[15px] px-6 py-8 min-h-[300px]" />
+                    <AdvertisingBanner className="rounded-[15px] px-6 py-8 min-h-[300px]" />
 
                     {/* Otras Secciones - Black Box with Red Top */}
                     <div className="bg-black rounded-t-[20px] overflow-hidden">

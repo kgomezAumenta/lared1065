@@ -9,7 +9,6 @@ import { getAdById } from "@/app/services/ads";
 interface AdvertisingBannerProps {
     className?: string;
     minHeight?: string;
-    slotId?: string;       // Google AdSense Data Slot ID (Legacy)
     adId?: number;         // Advanced Ads ID (New)
     format?: "auto" | "fluid" | "rectangle" | "vertical" | "horizontal";
     responsive?: "true" | "false";
@@ -19,7 +18,6 @@ interface AdvertisingBannerProps {
 const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
     className,
     minHeight = "280px",
-    slotId,
     adId,
     format = "auto",
     responsive = "true",
@@ -51,50 +49,22 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
 
     return (
         <div className={containerClass}>
-            {/* 1. Advanced Ads (Priority) */}
+            {/* 1. Advanced Ads */}
             {adId && adContent ? (
                 <div
                     className="w-full h-full flex justify-center items-center"
                     dangerouslySetInnerHTML={{ __html: adContent }}
                 />
-            ) : slotId ? (
-                /* 2. Google AdSense (Legacy/Fallback) */
-                <ins className="adsbygoogle"
-                    style={{ display: 'block', width: '100%', height: '100%' }}
-                    data-ad-client="ca-pub-6134329722127197"
-                    data-ad-slot={slotId}
-                    data-ad-format={format}
-                    data-full-width-responsive={responsive}
-                />
             ) : (
-                /* 3. Placeholder */
+                /* 2. Placeholder */
                 <div className="flex flex-col gap-2 items-center text-gray-400">
                     <span className="text-xs uppercase tracking-widest font-bold">{placeholderText}</span>
-                    {!adId && !slotId && <span className="text-[10px] text-red-500">(Falta ID)</span>}
+                    {!adId && <span className="text-[10px] text-red-500">(Falta ID)</span>}
                 </div>
             )}
-
-            {/* Initialize AdSense if using slotId (Existing Logic) */}
-            {slotId && !adId && <AdSenseScript slotId={slotId} />}
         </div>
     );
 };
-
-// Extracted AdSense Logic to separate component to clean up main effect
-const AdSenseScript = ({ slotId }: { slotId: string }) => {
-    const adsPushedRef = React.useRef(false);
-
-    React.useEffect(() => {
-        if (adsPushedRef.current) return;
-        try {
-            // @ts-ignore
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-            adsPushedRef.current = true;
-        } catch (err) { }
-    }, [slotId]);
-
-    return null;
-}
 
 export default AdvertisingBanner;
 

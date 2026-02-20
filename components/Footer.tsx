@@ -9,6 +9,23 @@ export default function Footer() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+    const Tiktok = ({ size = 24, className = "" }: { size?: number | string, className?: string }) => (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+        </svg>
+    );
+
     return (
         <footer className="bg-[#FF0000] text-white py-12 pb-32 text-sm">
             {/* pb-32 to account for the fixed player if needed, layout says pb-32 but mostly for player space */}
@@ -31,7 +48,7 @@ export default function Footer() {
                         </svg>
                     </div>
                     <p className="text-white text-lg font-normal">
-                        Somos la radio que te conecta con la información deportiva y nacional más relevante de Guatemala.
+                        LO QUE NECESITAS SABER DEL DEPORTE Y LAS NOTICIAS
                     </p>
                 </div>
 
@@ -70,10 +87,11 @@ export default function Footer() {
                 <div className="flex flex-col gap-4">
                     <h3 className="text-white font-bold text-2xl">Síguenos</h3>
                     <div className="flex gap-4">
-                        <a href="#" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Facebook size={24} /></a>
-                        <a href="#" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Twitter size={24} /></a>
-                        <a href="#" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Instagram size={24} /></a>
-                        <a href="#" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Youtube size={24} /></a>
+                        <a href="https://www.facebook.com/lared1061" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Facebook size={24} /></a>
+                        <a href="https://x.com/Lared106" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Twitter size={24} /></a>
+                        <a href="https://www.instagram.com/lared1061/" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Instagram size={24} /></a>
+                        <a href="https://www.youtube.com/@lared1061" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Youtube size={24} /></a>
+                        <a href="https://www.tiktok.com/@lared1061" className="hover:text-gray-200 transition-colors bg-white/10 p-2 rounded-full"><Tiktok size={24} /></a>
                     </div>
                 </div>
             </div>
@@ -82,7 +100,7 @@ export default function Footer() {
             <div className="mt-12 container mx-auto px-4">
                 <div className="border-t border-white/30 pt-8 flex justify-between items-center">
                     <div className="text-sm opacity-80">
-                        &copy; {new Date().getFullYear()} Radio La Red. Todos los derechos reservados.
+                        &copy; {new Date().getFullYear()} RCN. Todos los derechos reservados.
                     </div>
                     <div className="flex flex-col items-end gap-1">
                         <span className="text-[10px] uppercase tracking-wider font-bold opacity-80">POWERED BY</span>

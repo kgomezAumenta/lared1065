@@ -722,24 +722,19 @@ export default async function Home() {
           {/* Hablando con los Cracks (Iframe) */}
           <section className="hidden md:block">
             {/* Reduced from 3xl to 2xl */}
-            <h2 className="text-2xl font-extrabold text-[#E40000] uppercase mb-6">HABLANDO CON LOS CRACKS</h2>
+            <h2 className="text-2xl font-extrabold text-[#E40000] uppercase mb-6">LA RED DE ENTREVISTAS</h2>
             <div className="w-full">
               <iframe
-                src="https://omny.fm/shows/cracks/playlists/podcast/embed?style=cover"
+                src="https://omny.fm/shows/la-red-de-entrevistas/playlists/podcast/embed?style=artwork"
                 allow="autoplay; clipboard-write"
                 width="100%"
                 height="482"
                 frameBorder="0"
-                title="Hablando con los Cracks"
+                title="La Red De Entrevistas"
                 className="w-full rounded-[16px] shadow-md border border-white"
               ></iframe>
             </div>
           </section>
-
-
-
-
-
         </div>
 
         {/* RIGHT COLUMN (Sidebar) - Width 400px (Narrower) */}

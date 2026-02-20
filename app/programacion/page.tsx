@@ -19,33 +19,27 @@ interface DaySchedule {
 // Placeholder schedule - this could be fetched from WordPress ACF or a CPT
 const weeklySchedule: DaySchedule[] = [
     {
+
         day: "Lunes a Viernes",
         programs: [
-            { time: "05:00 - 09:00", name: "La Red Matutina", host: "Equipo La Red" },
-            { time: "09:00 - 12:00", name: "La Red De Entrevistas", host: "Equipo La Red" },
-            { time: "12:00 - 14:00", name: "Noticias al Mediodía", host: "Equipo La Red" },
-            { time: "14:00 - 17:00", name: "La Tarde en La Red", host: "Equipo La Red" },
-            { time: "17:00 - 20:00", name: "La Red Deportiva", host: "Equipo La Red" },
-            { time: "20:00 - 22:00", name: "Noticias Nocturnas", host: "Equipo La Red" },
-            { time: "22:00 - 01:00", name: "Música y Más", host: "Equipo La Red" },
+            { time: "05:30 - 12:00", name: "LA PRIMERA DE LA RED", host: "Equipo La Red" },
+            { time: "12:00 - 14:00", name: "LA SEGUNDA DE LA RED", host: "Equipo La Red" },
+            { time: "14:00 - 17:00", name: "GENTE DE FUTBOL", host: "Equipo La Red" },
+            { time: "17:00 - 18:00", name: "LA TERCERA DE LA RED", host: "Equipo La Red" },
+            { time: "18:00 - 20:00", name: "LA RED AL CIERRE", host: "Equipo La Red" },
+            { time: "20:00 - 05:30", name: "LO MEJOR DE LA RED 106.1", host: "Equipo La Red" }
         ],
     },
     {
         day: "Sábado",
         programs: [
-            { time: "06:00 - 10:00", name: "Sábado Deportivo", host: "Equipo La Red" },
-            { time: "10:00 - 14:00", name: "Hablando con los Cracks", host: "Equipo La Red" },
-            { time: "14:00 - 18:00", name: "Música del Recuerdo", host: "Equipo La Red" },
-            { time: "18:00 - 22:00", name: "Noche de Sábado", host: "Equipo La Red" },
+            { time: "06:00 - 22:00", name: "TRANSMISIONES DEPORTIVAS Y LAS VOCES DE LA RED", host: "Equipo La Red" },
         ],
     },
     {
         day: "Domingo",
         programs: [
-            { time: "06:00 - 10:00", name: "Domingo Familiar", host: "Equipo La Red" },
-            { time: "10:00 - 14:00", name: "Deportes en Domingo", host: "Equipo La Red" },
-            { time: "14:00 - 18:00", name: "Tarde Dominical", host: "Equipo La Red" },
-            { time: "18:00 - 22:00", name: "Cierre de Semana", host: "Equipo La Red" },
+            { time: "06:00 - 22:00", name: "TRANSMISIONES DEPORTIVAS Y LAS VOCES DE LA RED", host: "Equipo La Red" },
         ],
     },
 ];
