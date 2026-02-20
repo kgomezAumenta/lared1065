@@ -87,14 +87,13 @@ export default function RadioPlayer() {
                 <td-player
                     id="td-player"
                     // @ts-ignore
-                    type="bar"
+                    type="mini"
                     highlightcolor="#333333"
                     primarycolor="#FFFFFF"
                     secondarycolor="#E40000"
                     station="LA_RED"
                     onappready="appReady"
                     defaultcoverart="https://www.lared1061.com/wp-content/uploads/2025/04/Diseno-sin-titulo-76.png"
-                    class="w-full"
                 >
                 </td-player>
             </div>
