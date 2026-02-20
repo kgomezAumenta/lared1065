@@ -1,3 +1,5 @@
+"use server";
+
 export interface Ad {
     id: number;
     title: string;
