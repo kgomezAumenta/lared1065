@@ -147,12 +147,24 @@ export default function AdminMatches() {
     }, []);
 
     const uploadFile = async (file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        const response = await fetch("/api/upload", { method: "POST", body: formData });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        return data.url;
+        // 1. Get Pre-signed URL
+        const presignRes = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`);
+        const presignData = await presignRes.json();
+
+        if (!presignRes.ok) throw new Error(presignData.error || "Error solicitando URL de subida");
+
+        // 2. Upload directly to S3
+        const uploadRes = await fetch(presignData.uploadUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+                "Content-Type": file.type
+            }
+        });
+
+        if (!uploadRes.ok) throw new Error("Error al subir el archivo a S3");
+
+        return presignData.publicUrl;
     };
 
     const handleCreateMatch = async (e: React.FormEvent) => {
