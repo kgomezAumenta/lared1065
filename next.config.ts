@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
         hostname: "laredaumenta.s3.us-east-2.amazonaws.com",
       },
     ],
+    qualities: [50, 75, 80, 85, 90, 100],
   },
 };
 

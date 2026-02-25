@@ -126,23 +126,23 @@ export default function Header() {
                     </Link>
 
                     {/* Right Side: Weather (Desktop) + Search */}
-                    <div className="flex items-center gap-4 w-full md:w-auto">
-                        <div className="hidden md:block">
+                    <div className="flex items-center justify-end w-full md:w-auto">
+                        <div className="hidden md:flex items-center pr-4">
                             <WeatherWidget variant="header-desktop" />
                         </div>
 
                         {/* Search Bar */}
                         <form onSubmit={handleSearch} className="relative w-full md:w-auto">
-                            <div className="flex items-center bg-[#F0F0F0] rounded-full px-6 py-3 w-full md:w-[400px] justify-between">
+                            <div className="flex items-center bg-[#F0F0F0] rounded-full px-6 py-2.5 w-full md:w-[400px] justify-between">
                                 <input
                                     type="text"
                                     placeholder="Buscar..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="bg-transparent border-none outline-none text-xl text-gray-600 placeholder-gray-400 w-full"
+                                    className="bg-transparent border-none outline-none text-[15px] font-normal text-gray-600 placeholder-gray-400 w-full"
                                 />
-                                <button type="submit" aria-label="Buscar noticias">
-                                    <Search size={24} className="text-gray-500" />
+                                <button type="submit" aria-label="Buscar noticias" className="ml-2">
+                                    <Search size={20} className="text-gray-500" />
                                 </button>
                             </div>
                         </form>

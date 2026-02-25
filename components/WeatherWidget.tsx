@@ -63,12 +63,12 @@ export default function WeatherWidget({ variant, city = "Guatemala City", data }
     // --- VARIANT: HEADER DESKTOP ---
     if (variant === 'header-desktop') {
         return (
-            <Link href="/clima" className="flex items-center gap-2 text-gray-700 hover:text-[#E40000] transition group mr-4" title="Ver Clima Departamental">
-                <div className="flex flex-col items-end leading-tight">
-                    <span className="text-[10px] uppercase font-bold text-gray-500 group-hover:text-red-500">Capital</span>
-                    <span className="text-xl font-bold">{Math.round(weather.current.temp_c)}°C</span>
+            <Link href="/clima" className="flex items-center gap-2 text-gray-700 hover:text-[#E40000] transition group mr-2" title="Ver Clima Departamental">
+                <div className="flex flex-col items-end leading-none justify-center">
+                    <span className="text-[9px] uppercase font-bold text-gray-500 group-hover:text-red-500 tracking-wide mb-0.5">Capital</span>
+                    <span className="text-lg font-bold text-gray-800">{Math.round(weather.current.temp_c)}°C</span>
                 </div>
-                <img src={iconUrl} alt={weather.current.condition.text} className="w-10 h-10" />
+                <img src={iconUrl} alt={weather.current.condition.text} className="w-8 h-8" />
             </Link>
         );
     }
