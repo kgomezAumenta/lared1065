@@ -76,14 +76,14 @@ export default function WeatherWidget({ variant, city = "Guatemala City", data }
     // --- VARIANT: HEADER MOBILE ---
     if (variant === 'header-mobile') {
         return (
-            <Link href="/clima" className="bg-gray-100 border-b border-gray-200 py-2 px-4 flex justify-between items-center text-sm">
+            <Link href="/clima" className="flex items-center gap-3 text-sm">
                 <div className="flex items-center gap-2">
                     <CloudSun size={16} className="text-gray-500" />
-                    <span className="font-bold text-gray-700">Clima en la Capital:</span>
+                    <span className="font-bold text-gray-700">Capital</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <img src={iconUrl} alt="icon" className="w-6 h-6" />
-                    <span className="font-bold">{Math.round(weather.current.temp_c)}°C</span>
+                <div className="flex items-center gap-1">
+                    <img src={iconUrl} alt="icon" className="w-5 h-5" />
+                    <span className="font-bold">{Math.round(weather.current.temp_c)}°</span>
                 </div>
             </Link>
         );

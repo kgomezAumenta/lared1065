@@ -151,9 +151,19 @@ export default function Header() {
                 </div>
             </div>
 
-            {/* Mobile Weather Widget (Below Main Header) */}
-            <div className="md:hidden">
+            {/* Mobile Weather & Live Button (Below Main Header) */}
+            <div className="md:hidden bg-gray-100 border-b border-gray-200 py-2 px-4 flex justify-between items-center">
                 <WeatherWidget variant="header-mobile" />
+                <Link
+                    href="/en-vivo"
+                    className="flex items-center gap-2 bg-[#E40000] text-white text-[11px] font-bold px-3 py-1.5 rounded-full hover:bg-red-700 transition-colors"
+                >
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
+                    EN VIVO
+                </Link>
             </div>
 
             {/* Navigation Bar - RED BACKGROUND */}
