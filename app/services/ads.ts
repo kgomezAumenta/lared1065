@@ -16,8 +16,8 @@ export async function getAdById(id: number): Promise<Ad | null> {
         let allAds: any[] = [];
         let allGroups: any[] = [];
         const [adsRes, groupsRes] = await Promise.all([
-            fetch(API_URL, { next: { revalidate: 300 } }),
-            fetch("https://www.lared1061.com/wp-json/advanced-ads/v1/groups", { next: { revalidate: 300 } })
+            fetch(`${API_URL}?per_page=100`, { next: { revalidate: 300 } }),
+            fetch("https://www.lared1061.com/wp-json/advanced-ads/v1/groups?per_page=100", { next: { revalidate: 300 } })
         ]);
 
         if (adsRes.ok) allAds = await adsRes.json();
