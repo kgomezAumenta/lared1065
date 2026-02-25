@@ -101,6 +101,8 @@ async function getData() {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       economia: posts(first: 6, where: { categoryName: "economia" }) {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
+      marcasPosts: posts(first: 6, where: { tag: "marcas" }) {
+        nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       ahoraPosts: posts(first: 10) {
         nodes { id title slug date excerpt categories { nodes { name slug } } }
       }
@@ -153,6 +155,7 @@ async function getData() {
       deporteIntPosts: data?.deporteInternacional?.nodes || [],
       deporteNacPosts: data?.deporteNacional?.nodes || [],
       economiaPosts: data?.economia?.nodes || [],
+      marcasPosts: data?.marcasPosts?.nodes || [],
       ahoraPosts: data?.ahoraPosts?.nodes || [],
       acfBreakingNews: data?.ahoraPage?.newsList?.repetidor || [],
 
@@ -181,6 +184,7 @@ async function getData() {
       deporteIntPosts: [],
       deporteNacPosts: [],
       economiaPosts: [],
+      marcasPosts: [],
       ahoraPosts: [], // Fallback
       acfBreakingNews: [],
 
@@ -211,6 +215,7 @@ export default async function Home() {
     deporteIntPosts,
     deporteNacPosts,
     economiaPosts,
+    marcasPosts,
     /*
     ahoraPosts,
     acfBreakingNews,
@@ -225,8 +230,8 @@ export default async function Home() {
   // 2. Sidebar List (Lo Más Reciente)
   // If featured is sticky, use full latest. If default, skip first.
   const subFeaturedPosts = stickyHero
-    ? latestPosts.filter((p: Post) => p.id !== stickyHero.id).slice(0, 5)
-    : latestPosts.slice(1, 6);
+    ? latestPosts.filter((p: Post) => p.id !== stickyHero.id).slice(0, 4)
+    : latestPosts.slice(1, 5);
 
   // 3. Sidebar List Logic
   // If Urgent Mode is active AND we have related urgent posts, show them.
@@ -244,8 +249,8 @@ export default async function Home() {
         </h3>
       </div>
     ) as any;
-    sidebarContent = urgentRelatedPosts.slice(0, 5).map((post: Post) => (
-      <div key={post.id} className="flex gap-4 items-start group">
+    sidebarContent = urgentRelatedPosts.slice(0, 4).map((post: Post) => (
+      <div key={post.id} className="flex gap-3 items-start group">
         <Link href={`/posts/${post.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
           {post.featuredImage?.node?.sourceUrl ? (
             <Image
@@ -262,7 +267,7 @@ export default async function Home() {
             {post.categories?.nodes[0]?.name || "RELACIONADO"}
           </span>
           <Link href={`/posts/${post.slug}`}>
-            <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+            <h3 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
               {post.title}
             </h3>
           </Link>
@@ -281,7 +286,7 @@ export default async function Home() {
       <>
         {/* 1. Futbol Nacional */}
         {sideFutbolNacional && (
-          <div className="flex gap-4 items-start group">
+          <div className="flex gap-3 items-start group">
             <Link href={`/posts/${sideFutbolNacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
               {sideFutbolNacional.featuredImage?.node?.sourceUrl ? (
                 <Image
@@ -296,7 +301,7 @@ export default async function Home() {
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-[#E40000] uppercase">FUTBOL NACIONAL</span>
               <Link href={`/posts/${sideFutbolNacional.slug}`}>
-                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                <h3 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
                   {sideFutbolNacional.title}
                 </h3>
               </Link>
@@ -309,7 +314,7 @@ export default async function Home() {
 
         {/* 2. Internacionales */}
         {sideInternacional && (
-          <div className="flex gap-4 items-start group">
+          <div className="flex gap-3 items-start group">
             <Link href={`/posts/${sideInternacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
               {sideInternacional.featuredImage?.node?.sourceUrl ? (
                 <Image
@@ -324,7 +329,7 @@ export default async function Home() {
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-[#E40000] uppercase">INTERNACIONALES</span>
               <Link href={`/posts/${sideInternacional.slug}`}>
-                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                <h3 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
                   {sideInternacional.title}
                 </h3>
               </Link>
@@ -337,7 +342,7 @@ export default async function Home() {
 
         {/* 3. Nacionales */}
         {sideNacional && (
-          <div className="flex gap-4 items-start group">
+          <div className="flex gap-3 items-start group">
             <Link href={`/posts/${sideNacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
               {sideNacional.featuredImage?.node?.sourceUrl ? (
                 <Image
@@ -352,7 +357,7 @@ export default async function Home() {
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-[#E40000] uppercase">NACIONALES</span>
               <Link href={`/posts/${sideNacional.slug}`}>
-                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                <h3 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
                   {sideNacional.title}
                 </h3>
               </Link>
@@ -365,7 +370,7 @@ export default async function Home() {
 
         {/* 4. Futbol Internacional */}
         {sideFutbolInternacional && (
-          <div className="flex gap-4 items-start group">
+          <div className="flex gap-3 items-start group">
             <Link href={`/posts/${sideFutbolInternacional.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
               {sideFutbolInternacional.featuredImage?.node?.sourceUrl ? (
                 <Image
@@ -380,36 +385,8 @@ export default async function Home() {
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-[#E40000] uppercase">FUTBOL INTERNACIONAL</span>
               <Link href={`/posts/${sideFutbolInternacional.slug}`}>
-                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
+                <h3 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
                   {sideFutbolInternacional.title}
-                </h3>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Separator */}
-        <div className="h-[1px] bg-gray-200 w-full" />
-
-        {/* 5. Economia */}
-        {sideEconomia && (
-          <div className="flex gap-4 items-start group">
-            <Link href={`/posts/${sideEconomia.slug}`} className="relative w-[100px] h-[70px] shrink-0 rounded-[10px] overflow-hidden">
-              {sideEconomia.featuredImage?.node?.sourceUrl ? (
-                <Image
-                  src={sideEconomia.featuredImage.node.sourceUrl}
-                  alt={sideEconomia.title}
-                  fill
-                  sizes="100px"
-                  className="object-cover"
-                />
-              ) : <div className="w-full h-full bg-gray-200" />}
-            </Link>
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-[#E40000] uppercase">ECONOMÍA</span>
-              <Link href={`/posts/${sideEconomia.slug}`}>
-                <h3 className="text-sm font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">
-                  {sideEconomia.title}
                 </h3>
               </Link>
             </div>
@@ -481,7 +458,7 @@ export default async function Home() {
 
             {/* Conditional Content */}
             {typeof sidebarTitle === 'string' ? (
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex flex-col gap-4 w-full">
                   <div className="flex justify-between items-center">
                     <h2 className="text-xl font-bold text-black uppercase">{sidebarTitle}</h2>
@@ -493,7 +470,7 @@ export default async function Home() {
               sidebarTitle
             )}
 
-            <div className="flex flex-col gap-6 p-4 border border-gray-100 rounded-[20px] bg-white shadow-sm">
+            <div className="flex flex-col gap-4 p-4 border border-gray-100 rounded-[20px] bg-white shadow-sm">
               {sidebarContent}
             </div>
 
@@ -516,14 +493,16 @@ export default async function Home() {
 
           {/* Nacionales Section */}
           <section className="flex flex-col gap-8">
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-black uppercase">Nacionales</h2>
+            <div className="w-full">
+              <div className="flex justify-between items-center mb-4">
+                <Link href="/category/nacionales" className="text-xl font-bold text-[#E40000] uppercase hover:text-red-700 transition-colors">
+                  Nacionales
+                </Link>
                 <Link href="/category/nacionales" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
                   Ver Más
                 </Link>
               </div>
-              <div className="h-[2px] bg-black w-full" />
+              <div className="h-[2px] bg-[#E40000] w-full" />
             </div>
 
             {/* Nacionales Section - 2 Rows */}
@@ -617,23 +596,25 @@ export default async function Home() {
             </div>
           </section>
 
-          {/* Internacionales Section */}
+          {/* Fútbol Nacional Section */}
           <section className="flex flex-col gap-8">
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-black uppercase">Internacional</h2>
-                <Link href="/category/internacionales" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+            <div className="w-full">
+              <div className="flex justify-between items-center mb-4">
+                <Link href="/category/futbol-nacional" className="text-xl font-bold text-[#E40000] uppercase hover:text-red-700 transition-colors">
+                  Fútbol Nacional
+                </Link>
+                <Link href="/category/futbol-nacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
                   Ver Más
                 </Link>
               </div>
-              <div className="h-[2px] bg-black w-full" />
+              <div className="h-[2px] bg-[#E40000] w-full" />
             </div>
 
-            {/* Internacionales Section - 2 Rows */}
+            {/* Fútbol Nacional Section - 2 Rows */}
             <div className="flex flex-col gap-8">
               {/* Row 1: Post 1, Post 2, Ad */}
               <div className="flex flex-col md:flex-row gap-8">
-                {internacionalesPosts.slice(0, 2).map((post: Post) => (
+                {futbolNacionalPosts.slice(0, 2).map((post: Post) => (
                   <div key={post.id} className="flex-1 flex flex-col gap-3 min-w-[280px]">
                     <Link href={`/posts/${post.slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
                       {post.featuredImage?.node?.sourceUrl && (
@@ -649,11 +630,11 @@ export default async function Home() {
                     </Link>
                     <div className="self-start">
                       <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
-                        INTERNACIONAL
+                        FUTBOL NACIONAL
                       </span>
                     </div>
                     <Link href={`/posts/${post.slug}`} className="group">
-                      <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                      <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#E40000] transition-colors">
                         {post.title}
                       </h3>
                     </Link>
@@ -672,16 +653,16 @@ export default async function Home() {
                 <div className="flex-1 min-w-[280px]">
                   <AdvertisingBanner
                     adId={37293}
-                    placeholderText="Anuncio Inter"
+                    placeholderText="Anuncio Futbol"
                     className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
                   />
                 </div>
               </div>
 
               {/* Row 2: Post 3, Post 4, Post 5 */}
-              {internacionalesPosts.length > 2 && (
+              {futbolNacionalPosts.length > 2 && (
                 <div className="flex flex-col md:flex-row gap-8">
-                  {internacionalesPosts.slice(2, 5).map((post: Post) => (
+                  {futbolNacionalPosts.slice(2, 5).map((post: Post) => (
                     <div key={post.id} className="flex-1 flex flex-col gap-3 min-w-[280px]">
                       <Link href={`/posts/${post.slug}`} className="relative block h-[200px] w-full rounded-[10px] overflow-hidden">
                         {post.featuredImage?.node?.sourceUrl && (
@@ -697,11 +678,11 @@ export default async function Home() {
                       </Link>
                       <div className="self-start">
                         <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
-                          INTERNACIONAL
+                          FUTBOL NACIONAL
                         </span>
                       </div>
                       <Link href={`/posts/${post.slug}`} className="group">
-                        <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                        <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#E40000] transition-colors">
                           {post.title}
                         </h3>
                       </Link>
@@ -716,7 +697,7 @@ export default async function Home() {
                     </div>
                   ))}
                   {/* Fill empty slots */}
-                  {internacionalesPosts.slice(2, 5).length < 3 && Array.from({ length: 3 - internacionalesPosts.slice(2, 5).length }).map((_, i) => (
+                  {futbolNacionalPosts.slice(2, 5).length < 3 && Array.from({ length: 3 - futbolNacionalPosts.slice(2, 5).length }).map((_, i) => (
                     <div key={`empty-${i}`} className="flex-1 hidden md:block"></div>
                   ))}
                 </div>
@@ -793,22 +774,20 @@ export default async function Home() {
 
       </div>
 
-      {/* Fútbol Nacional Section (Full Width) */}
-      <div className="container mx-auto px-4 max-w-[1630px] mb-16 mt-16">
+      {/* Internacionales Section (Full Width) */}
+      <div className="container mx-auto px-4 max-w-[1630px] mt-16 mb-12">
         <section className="">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex flex-col gap-4 w-full">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-extrabold text-[#E40000] uppercase">FÚTBOL NACIONAL</h2>
-                <Link href="/category/futbol-nacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
-                  Ver Más
-                </Link>
-              </div>
-              <div className="h-[2px] bg-black w-full" />
-            </div>
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/category/internacionales" className="text-xl font-bold text-[#E40000] uppercase hover:text-red-700 transition-colors">
+              INTERNACIONALES
+            </Link>
+            <Link href="/category/internacionales" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+              Ver Más
+            </Link>
           </div>
+          <div className="h-[2px] bg-[#E40000] w-full mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {futbolNacionalPosts.slice(0, 6).map((post: Post) => (
+            {internacionalesPosts.slice(0, 6).map((post: Post) => (
               <div key={post.id} className="flex flex-col gap-3">
                 <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
                   {post.featuredImage?.node?.sourceUrl ? (
@@ -825,12 +804,12 @@ export default async function Home() {
                   )}
                   {/* Floating Pill inside image */}
                   <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
-                    FUTBOL NACIONAL
+                    INTERNACIONALES
                   </div>
                 </Link>
 
                 <Link href={`/posts/${post.slug}`} className="group">
-                  <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                  <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#E40000] transition-colors">
                     {post.title}
                   </h3>
                 </Link>
@@ -847,19 +826,17 @@ export default async function Home() {
       </div>
 
       {/* Fútbol Internacional Section (Full Width) */}
-      <div className="container mx-auto px-4 max-w-[1630px] mb-16">
+      <div className="container mx-auto px-4 max-w-[1630px] mt-16 mb-12">
         <section className="">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex flex-col gap-4 w-full">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-extrabold text-[#E40000] uppercase">FÚTBOL INTERNACIONAL</h2>
-                <Link href="/category/futbol-internacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
-                  Ver Más
-                </Link>
-              </div>
-              <div className="h-[2px] bg-black w-full" />
-            </div>
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/category/futbol-internacional" className="text-xl font-bold text-[#E40000] uppercase hover:text-red-700 transition-colors">
+              FÚTBOL INTERNACIONAL
+            </Link>
+            <Link href="/category/futbol-internacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+              Ver Más
+            </Link>
           </div>
+          <div className="h-[2px] bg-[#E40000] w-full mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {futbolInternacionalPosts.slice(0, 6).map((post: Post) => (
               <div key={post.id} className="flex flex-col gap-3">
@@ -883,7 +860,207 @@ export default async function Home() {
                 </Link>
 
                 <Link href={`/posts/${post.slug}`} className="group">
-                  <h3 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">
+                  <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#E40000] transition-colors">
+                    {post.title}
+                  </h3>
+                </Link>
+
+                <div className="flex justify-between items-center w-full mt-1">
+                  <span className="text-gray-600 text-xs font-normal">
+                    {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Deporte Nacional Section (Full Width) */}
+      <div className="container mx-auto px-4 max-w-[1630px] mt-16 mb-12">
+        <section className="">
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/category/deporte-nacional" className="text-xl font-bold text-[#E40000] uppercase hover:text-red-700 transition-colors">
+              DEPORTE NACIONAL
+            </Link>
+            <Link href="/category/deporte-nacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+              Ver Más
+            </Link>
+          </div>
+          <div className="h-[2px] bg-[#E40000] w-full mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {deporteNacPosts.slice(0, 6).map((post: Post) => (
+              <div key={post.id} className="flex flex-col gap-3">
+                <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
+                  {post.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={post.featuredImage.node.sourceUrl}
+                      alt={post.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={85}
+                      className="object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                    DEPORTE NACIONAL
+                  </div>
+                </Link>
+
+                <Link href={`/posts/${post.slug}`} className="group">
+                  <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#E40000] transition-colors">
+                    {post.title}
+                  </h3>
+                </Link>
+
+                <div className="flex justify-between items-center w-full mt-1">
+                  <span className="text-gray-600 text-xs font-normal">
+                    {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Deporte Internacional Section (Full Width) */}
+      <div className="container mx-auto px-4 max-w-[1630px] mt-16 mb-12">
+        <section className="">
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/category/deporte-internacional" className="text-xl font-bold text-[#E40000] uppercase hover:text-red-700 transition-colors">
+              DEPORTE INTERNACIONAL
+            </Link>
+            <Link href="/category/deporte-internacional" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+              Ver Más
+            </Link>
+          </div>
+          <div className="h-[2px] bg-[#E40000] w-full mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {deporteIntPosts.slice(0, 6).map((post: Post) => (
+              <div key={post.id} className="flex flex-col gap-3">
+                <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
+                  {post.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={post.featuredImage.node.sourceUrl}
+                      alt={post.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={85}
+                      className="object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                    DEPORTE INTERNACIONAL
+                  </div>
+                </Link>
+
+                <Link href={`/posts/${post.slug}`} className="group">
+                  <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#E40000] transition-colors">
+                    {post.title}
+                  </h3>
+                </Link>
+
+                <div className="flex justify-between items-center w-full mt-1">
+                  <span className="text-gray-600 text-xs font-normal">
+                    {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Economía Section (Full Width) */}
+      <div className="container mx-auto px-4 max-w-[1630px] mt-16 mb-12">
+        <section className="">
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/category/economia" className="text-xl font-bold text-[#E40000] uppercase hover:text-red-700 transition-colors">
+              ECONOMÍA
+            </Link>
+            <Link href="/category/economia" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+              Ver Más
+            </Link>
+          </div>
+          <div className="h-[2px] bg-[#E40000] w-full mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {economiaPosts.slice(0, 6).map((post: Post) => (
+              <div key={post.id} className="flex flex-col gap-3">
+                <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
+                  {post.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={post.featuredImage.node.sourceUrl}
+                      alt={post.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={85}
+                      className="object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                    ECONOMÍA
+                  </div>
+                </Link>
+
+                <Link href={`/posts/${post.slug}`} className="group">
+                  <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#E40000] transition-colors">
+                    {post.title}
+                  </h3>
+                </Link>
+
+                <div className="flex justify-between items-center w-full mt-1">
+                  <span className="text-gray-600 text-xs font-normal">
+                    {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Marcas que Marcan Section (Full Width) */}
+      <div className="container mx-auto px-4 max-w-[1630px] mt-16 mb-12">
+        <section className="">
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/tag/marcas" className="text-xl font-bold text-[#E40000] uppercase hover:text-red-700 transition-colors">
+              MARCAS QUE MARCAN
+            </Link>
+            <Link href="/tag/marcas" className="border border-black px-4 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors">
+              Ver Más
+            </Link>
+          </div>
+          <div className="h-[2px] bg-[#E40000] w-full mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {marcasPosts.slice(0, 6).map((post: Post) => (
+              <div key={post.id} className="flex flex-col gap-3">
+                <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
+                  {post.featuredImage?.node?.sourceUrl ? (
+                    <Image
+                      src={post.featuredImage.node.sourceUrl}
+                      alt={post.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={85}
+                      className="object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                    MARCAS
+                  </div>
+                </Link>
+
+                <Link href={`/posts/${post.slug}`} className="group">
+                  <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#E40000] transition-colors">
                     {post.title}
                   </h3>
                 </Link>

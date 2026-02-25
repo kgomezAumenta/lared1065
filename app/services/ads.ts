@@ -10,29 +10,39 @@ const API_URL = "https://www.lared1061.com/wp-json/advanced-ads/v1/ads";
 
 export async function getAdById(id: number): Promise<Ad | null> {
     try {
-        // Advanced Ads API doesn't seem to support direct fetch by ID in standard endpoint (/ads/ID sometimes fails)
-        // But we can filter the list or try direct endpoint if supported.
-        // Based on typical WP REST API, let's try direct ID first, fallback to list filter.
+        // Advanced Ads API individual route (/v1/ads/[id]) is currently throwing 500 Critical Errors.
+        // As a workaround, we fetch the complete list of ads and groups, and filter locally.
 
-        // Option 1: Direct ID
-        const res = await fetch(`${API_URL}/${id}`, {
-            next: { revalidate: 300 }, // Cache for 5 minutes
-        });
+        let allAds: any[] = [];
+        let allGroups: any[] = [];
+        const [adsRes, groupsRes] = await Promise.all([
+            fetch(API_URL, { next: { revalidate: 300 } }),
+            fetch("https://www.lared1061.com/wp-json/advanced-ads/v1/groups", { next: { revalidate: 300 } })
+        ]);
 
-        if (res.ok) {
-            const data = await res.json();
-            // Map known fields. API might return uppercase ID or different casing.
-            return {
-                id: data.ID || data.id,
-                title: data.title?.rendered || data.title,
-                content: data.content?.rendered || data.content,
-            };
+        if (adsRes.ok) allAds = await adsRes.json();
+        if (groupsRes.ok) allGroups = await groupsRes.json();
+
+        // 1. Check if ID is a Group
+        const group = allGroups.find(g => (g.ID || g.id) === id);
+        let targetAdId = id;
+
+        if (group && group.ads && group.ads.length > 0) {
+            // For random ads, we can pick a random ad from the group, or just the first one
+            // Advanced ads group 'ad_weights' could be used, but picking the first one is easiest for now
+            targetAdId = group.ads[0];
         }
 
-        // Option 2: Filter by 'include' (if Option 1 fails)
-        // Note: 'include' param is standard in WP, but Advanced Ads might vary.
-        // Given previous curl failure on specific ID, let's try fetching list and finding it.
-        // BEWARE: This is heavy if there are many ads.
+        // 2. Find the Ad by targetAdId in the Ads list
+        const ad = allAds.find(a => (a.ID || a.id) === targetAdId);
+
+        if (ad) {
+            return {
+                id: ad.ID || ad.id,
+                title: ad.title || '',
+                content: ad.content || '',
+            };
+        }
 
         return null;
     } catch (error) {

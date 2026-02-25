@@ -44,8 +44,8 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
 
     // Container styles
     const containerClass = className
-        ? `${className} overflow-hidden bg-gray-100 flex justify-center items-center`
-        : `w-full bg-gray-100 py-4 flex items-center justify-center min-h-[${minHeight}]`;
+        ? `${className} overflow-hidden bg-transparent flex justify-center items-center`
+        : `w-full bg-transparent py-4 flex items-center justify-center min-h-[${minHeight}]`;
 
     return (
         <div className={containerClass}>
