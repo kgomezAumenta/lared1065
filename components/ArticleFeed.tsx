@@ -260,11 +260,11 @@ export default function ArticleFeed({
                     />
 
                     {/* Inject Ad between posts */}
-                    {/* {index < posts.length - 1 && (
-                        <div className="w-full flex justify-center my-8">
-                            <AdvertisingBanner placeholderText="Anuncio Entre Notas" className="w-[300px] h-[250px] bg-gray-100" />
+                    {index < posts.length - 1 && (
+                        <div className="w-full flex justify-center my-12">
+                            <AdvertisingBanner adId={37435} placeholderText="Headles entre Nota Vertical" className="w-full flex justify-center" />
                         </div>
-                    )} */}
+                    )}
                 </div>
             ))}
 

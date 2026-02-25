@@ -34,6 +34,7 @@ interface Post {
 interface AdItem {
     id: string;
     type: 'ad';
+    adId: number;
     title?: string;
     content?: string;
 }
@@ -172,8 +173,8 @@ async function getCategoryData(slug: string, after?: string, before?: string) {
 function insertAds(posts: Post[]): GridItem[] {
     const items: GridItem[] = [];
     const adsConfiguration: (AdItem & { index: number })[] = [
-        { index: 1, id: 'ad-1', type: 'ad' },
-        { index: 8, id: 'ad-2', type: 'ad' }
+        { index: 1, id: 'ad-1', type: 'ad', adId: 37431 },
+        { index: 8, id: 'ad-2', type: 'ad', adId: 37432 }
     ];
 
     let currentPost = 0;
@@ -238,7 +239,9 @@ export default async function CategoryPage({
 
 
             {/* Advertising Banner (From Figma) */}
-            <AdvertisingBanner className="rounded-[15px] mb-12 shadow-sm min-h-[150px] w-full" />
+            <div className="flex justify-center w-full mb-12">
+                <AdvertisingBanner adId={37430} placeholderText="Headless Cat Top" className="w-full flex justify-center" />
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
                 {/* Main Content - 3 columns */}
@@ -257,8 +260,8 @@ export default async function CategoryPage({
                             gridItems.map((item: GridItem) => {
                                 if (item.type === 'ad') {
                                     return (
-                                        <div key={item.id} className="h-full">
-                                            <AdvertisingBanner className="h-full rounded-[15px] px-6 py-8" />
+                                        <div key={item.id} className="h-full flex items-center justify-center">
+                                            <AdvertisingBanner adId={item.adId} className="w-full flex justify-center" placeholderText="Anuncio Interno" />
                                         </div>
                                     );
                                 }
@@ -380,7 +383,9 @@ export default async function CategoryPage({
                     </div>
 
                     {/* Ad Box - LARGE RED BOX below sidebar list */}
-                    <AdvertisingBanner className="rounded-[15px] px-6 py-8 min-h-[300px]" />
+                    <div className="flex justify-center w-full">
+                        <AdvertisingBanner adId={37433} placeholderText="Headles Cat Vertical Side" className="w-full flex justify-center" />
+                    </div>
 
                     {/* Otras Secciones - Black Box with Red Top */}
                     <div className="bg-black rounded-t-[20px] overflow-hidden">

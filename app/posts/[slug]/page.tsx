@@ -225,9 +225,9 @@ export default async function PostPage({
         <main className="container mx-auto px-4 py-8 pb-32">
 
             {/* Top Red Ad Banner */}
-            {/* <div className="mb-12">
-                <AdvertisingBanner placeholderText="Anuncio Top" />
-            </div> */}
+            <div className="flex justify-center w-full mb-12">
+                <AdvertisingBanner adId={37434} placeholderText="Headles Top Nota Horizontal" className="w-full flex justify-center" />
+            </div>
 
             <div className="flex flex-col xl:flex-row gap-12 justify-center items-start">
 
