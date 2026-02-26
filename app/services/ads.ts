@@ -8,7 +8,7 @@ export interface Ad {
 
 const API_URL = "https://www.lared1061.com/wp-json/advanced-ads/v1/ads";
 
-export async function getAdById(id: number): Promise<Ad | null> {
+export async function getAdsById(id: number): Promise<Ad[]> {
     try {
         // Advanced Ads API individual route (/v1/ads/[id]) is currently throwing 500 Critical Errors.
         // As a workaround, we fetch the complete list of ads and groups, and filter locally.
@@ -25,28 +25,29 @@ export async function getAdById(id: number): Promise<Ad | null> {
 
         // 1. Check if ID is a Group
         const group = allGroups.find(g => (g.ID || g.id) === id);
-        let targetAdId = id;
 
         if (group && group.ads && group.ads.length > 0) {
-            // Pick a random ad from the group for dynamic rotation
-            const randomIndex = Math.floor(Math.random() * group.ads.length);
-            targetAdId = group.ads[randomIndex];
+            // Return all ads within the group for client-side rotation
+            return group.ads.map((adId: number) => {
+                const ad = allAds.find(a => (a.ID || a.id) === adId);
+                return ad ? { id: ad.ID || ad.id, title: ad.title || '', content: ad.content || '' } : null;
+            }).filter(Boolean);
         }
 
-        // 2. Find the Ad by targetAdId in the Ads list
-        const ad = allAds.find(a => (a.ID || a.id) === targetAdId);
+        // 2. Otherwise find the single Ad by ID
+        const ad = allAds.find(a => (a.ID || a.id) === id);
 
         if (ad) {
-            return {
+            return [{
                 id: ad.ID || ad.id,
                 title: ad.title || '',
                 content: ad.content || '',
-            };
+            }];
         }
 
-        return null;
+        return [];
     } catch (error) {
-        console.error(`Error fetching Ad ${id}:`, error);
-        return null;
+        console.error(`Error fetching Ads for ID ${id}:`, error);
+        return [];
     }
 }

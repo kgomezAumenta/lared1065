@@ -4,7 +4,7 @@ import React from 'react';
 import Image from "next/image";
 import Link from "next/link";
 
-import { getAdById } from "@/app/services/ads";
+import { getAdsById } from "@/app/services/ads";
 
 interface AdvertisingBannerProps {
     className?: string;
@@ -23,37 +23,51 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
     responsive = "true",
     placeholderText = "Anuncio"
 }) => {
-    const [adContent, setAdContent] = React.useState<string | null>(null);
+    const [adContents, setAdContents] = React.useState<string[]>([]);
+    const [currentIndex, setCurrentIndex] = React.useState(0);
 
-    // Fetch Advanced Ad if adId is present
+    // Fetch Advanced Ads if adId is present
     React.useEffect(() => {
         if (!adId) return;
 
         async function loadAd() {
-            const ad = await getAdById(adId!);
-            if (ad && ad.content) {
+            const ads = await getAdsById(adId!);
+            if (ads && ads.length > 0) {
                 // Determine if the content is just an image or script
                 // We will render it raw. Scripts might need execute logic if they are written via document.write (less likely in modern ads)
                 // But usually dangerousSetInnerHTML works for standard tags.
                 // For scripts that need execution, we might need a helper, but let's try direct first.
-                setAdContent(ad.content);
+                setAdContents(ads.map(ad => ad.content));
             }
         }
         loadAd();
     }, [adId]);
+
+    // Handle Rotation
+    React.useEffect(() => {
+        if (adContents.length <= 1) return;
+
+        const intervalId = setInterval(() => {
+            setCurrentIndex(prev => (prev + 1) % adContents.length);
+        }, 3000);
+
+        return () => clearInterval(intervalId);
+    }, [adContents.length]);
 
     // Container styles
     const containerClass = className
         ? `${className} overflow-hidden bg-transparent flex justify-center items-center`
         : `w-full bg-transparent py-4 flex items-center justify-center min-h-[${minHeight}]`;
 
+    const currentAdContent = adContents[currentIndex] || null;
+
     return (
         <div className={containerClass}>
             {/* 1. Advanced Ads */}
-            {adId && adContent ? (
+            {adId && currentAdContent ? (
                 <div
                     className="w-full h-full flex justify-center items-center"
-                    dangerouslySetInnerHTML={{ __html: adContent }}
+                    dangerouslySetInnerHTML={{ __html: currentAdContent }}
                 />
             ) : (
                 /* 2. Placeholder */
