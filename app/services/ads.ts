@@ -28,9 +28,9 @@ export async function getAdById(id: number): Promise<Ad | null> {
         let targetAdId = id;
 
         if (group && group.ads && group.ads.length > 0) {
-            // For random ads, we can pick a random ad from the group, or just the first one
-            // Advanced ads group 'ad_weights' could be used, but picking the first one is easiest for now
-            targetAdId = group.ads[0];
+            // Pick a random ad from the group for dynamic rotation
+            const randomIndex = Math.floor(Math.random() * group.ads.length);
+            targetAdId = group.ads[randomIndex];
         }
 
         // 2. Find the Ad by targetAdId in the Ads list
