@@ -243,37 +243,7 @@ export default async function PostPage({
                 <aside className="w-full xl:w-[400px] shrink-0 flex flex-col gap-8 sticky top-4">
 
                     {/* RELATED NEWS SECTION - Initial context */}
-                    {filteredRelatedPosts.length > 0 && (
-                        <div className="flex flex-col">
-                            <div className="bg-[#FF0000] rounded-[15px] py-3 px-4 mb-4 flex justify-center items-center">
-                                <h3 className="text-xl font-bold text-white text-center uppercase">NOTICIAS RELACIONADAS</h3>
-                            </div>
 
-                            <div className="flex flex-col border border-[#DCDCDC] rounded-[15px] overflow-hidden">
-                                {filteredRelatedPosts.map((rPost: any, idx: number) => (
-                                    <Link key={rPost.id} href={`/posts/${rPost.slug}`} className="p-5 border-b border-[#DCDCDC] last:border-0 flex gap-6 items-center hover:bg-gray-50 transition-colors group">
-                                        <div className="relative w-[100px] h-[75px] shrink-0 rounded-[8px] overflow-hidden bg-gray-200">
-                                            {rPost.featuredImage?.node?.sourceUrl && (
-                                                <Image
-                                                    src={rPost.featuredImage.node.sourceUrl}
-                                                    alt={rPost.featuredImage.node.altText || rPost.title}
-                                                    fill
-                                                    sizes="100px"
-                                                    className="object-cover"
-                                                />
-                                            )}
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-[#E40000] text-xs font-bold uppercase">
-                                                {rPost.categories?.nodes[0]?.name || "NOTICIAS"}
-                                            </span>
-                                            <h4 className="text-base font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors line-clamp-3">{rPost.title}</h4>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    )}
 
                     {/* LO MÁS RECIENTE DE LA RED */}
                     <div className="flex flex-col">

@@ -41,7 +41,10 @@ export function generateSeoMetadata(seoData: any, fallbackTitle?: string): Metad
 
   const title = seoData.title || fallbackTitle || 'La Red 106.1';
   const description = seoData.description || '';
-  const url = seoData.canonicalUrl || seoData.openGraph?.url || 'https://www.lared1061.com';
+
+  // Extract and force URL to the public frontend domain
+  let rawUrl = seoData.canonicalUrl || seoData.openGraph?.url || 'https://www.lared1061.com';
+  const url = rawUrl.replace(/https?:\/\/(www\.)?cms\.lared1061\.com/gim, "https://www.lared1061.com");
 
   // Parse Robots
   const robots: any = {
