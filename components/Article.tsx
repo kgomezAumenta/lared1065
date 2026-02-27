@@ -101,12 +101,19 @@ const processContent = (content: string) => {
     // Completely REMOVE WordPress internal embed IFrames
     // We only want the raw <a> tags to remain, which Next.js will intercept and route internally.
 
-    // 1. Extract the <a> tag from inside the wp-embedded-content blockquote and replace the blockquote with just the link
+    // 1. Extract the <a> tag from inside the wp-embedded-content blockquote and convert it into a beautiful custom Tailwind card
     processed = processed.replace(
         /<blockquote class="wp-embedded-content"[^>]*>([\s\S]*?)<\/blockquote>/gim,
         (match, innerContent) => {
             // innerContent usually contains <p><a href="...">Title</a></p>
-            return innerContent;
+            return `
+            <div class="my-8 p-6 bg-gray-50 border-l-4 border-[#E40000] rounded-r-xl shadow-sm hover:shadow-md transition-shadow">
+                <span class="block text-xs font-bold text-[#E40000] uppercase tracking-wider mb-2">Nota Recomendada</span>
+                <div class="text-xl font-bold text-gray-900 mt-0 mb-0 [&_p]:mb-0 [&_a]:text-gray-900 [&_a]:no-underline hover:[&_a]:text-[#E40000] hover:[&_a]:underline transition-colors">
+                    ${innerContent}
+                </div>
+            </div>
+            `;
         }
     );
 
