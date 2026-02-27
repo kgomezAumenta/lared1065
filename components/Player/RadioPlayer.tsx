@@ -9,8 +9,16 @@ export default function RadioPlayer() {
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(false);
     const [player, setPlayer] = useState<any>(null);
+    const [playerType, setPlayerType] = useState<"bar" | "mini" | null>(null);
 
     useEffect(() => {
+        // Evaluate screen size for player type
+        const checkScreenSize = () => {
+            setPlayerType(window.innerWidth < 768 ? "mini" : "bar");
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+
         // Define global callbacks required by the widget
         window.appReady = (object: any) => {
             console.log('Triton Player Ready', object);
@@ -52,7 +60,7 @@ export default function RadioPlayer() {
         };
 
         return () => {
-            // Optional cleanup
+            window.removeEventListener('resize', checkScreenSize);
         };
     }, []);
 
@@ -92,21 +100,23 @@ export default function RadioPlayer() {
                 Hidden Player Container 
                 NOTE: Using -left-[9999px] because some widgets won't initialize if display:none or w-0/h-0 
             */}
-            <div className="fixed bottom-0 left-0 z-50">
-                <td-player
-                    id="td-player"
-                    // @ts-ignore
-                    type="bar"
-                    highlightcolor="#333333"
-                    primarycolor="#FFFFFF"
-                    secondarycolor="#E40000"
-                    station="LA_RED"
-                    onappready="appReady"
-                    defaultcoverart="https://www.lared1061.com/wp-content/uploads/2025/04/Diseno-sin-titulo-76.png"
-                    class="w-full"
-                >
-                </td-player>
-            </div>
+            {playerType && (
+                <div className="fixed bottom-0 left-0 z-50 w-full">
+                    <td-player
+                        id="td-player"
+                        // @ts-ignore
+                        type={playerType}
+                        highlightcolor="#333333"
+                        primarycolor="#FFFFFF"
+                        secondarycolor="#E40000"
+                        station="LA_RED"
+                        onappready="appReady"
+                        defaultcoverart="https://www.lared1061.com/wp-content/uploads/2025/04/Diseno-sin-titulo-76.png"
+                        class="w-full"
+                    >
+                    </td-player>
+                </div>
+            )}
         </>
     );
 }
