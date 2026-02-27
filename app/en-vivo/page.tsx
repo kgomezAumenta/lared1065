@@ -51,6 +51,7 @@ export default function EnVivoPage() {
                                     title="La Red 106.1 - Transmisión en Vivo"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                     allowFullScreen
+                                    loading="lazy"
                                     className="absolute inset-0 w-full h-full"
                                     onError={() => setPlayerError(true)}
                                 />
