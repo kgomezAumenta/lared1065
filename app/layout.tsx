@@ -8,6 +8,8 @@ import Footer from "@/components/Footer";
 import RadioPlayer from "@/components/Player/RadioPlayer";
 import Script from "next/script";
 
+import { GoogleAnalytics } from '@next/third-parties/google';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -70,6 +72,9 @@ export default function RootLayout({
           src="https://www.lared1061.com/wp-includes/js/wp-embed.min.js"
           strategy="lazyOnload"
         />
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   );
