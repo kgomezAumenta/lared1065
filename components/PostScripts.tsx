@@ -30,13 +30,17 @@ export default function PostScripts({ slug }: { slug?: string }) {
             });
 
             // 2. Twitter
-            const twitterEmbeds = container.querySelectorAll('.twitter-tweet:not(.twitter-tweet-rendered)');
+            const twitterEmbeds = container.querySelectorAll('.twitter-tweet');
             if (twitterEmbeds.length > 0) {
-                // @ts-ignore
-                if (window.twttr?.widgets?.load) {
+                if (!document.getElementById("twitter-wjs")) {
+                    const script = document.createElement("script");
+                    script.id = "twitter-wjs";
+                    script.src = "https://platform.twitter.com/widgets.js";
+                    script.async = true;
+                    document.body.appendChild(script);
+                } else if ((window as any).twttr && (window as any).twttr.widgets) {
                     try {
-                        // @ts-ignore
-                        window.twttr.widgets.load(container);
+                        (window as any).twttr.widgets.load(container);
                     } catch (e) {
                         console.error("Twitter embed error", e);
                     }
@@ -44,13 +48,17 @@ export default function PostScripts({ slug }: { slug?: string }) {
             }
 
             // 3. Instagram
-            const igEmbeds = container.querySelectorAll('.instagram-media:not(.instagram-media-rendered)');
+            const igEmbeds = container.querySelectorAll('.instagram-media');
             if (igEmbeds.length > 0) {
-                // @ts-ignore
-                if (window.instgrm?.Embeds?.process) {
+                if (!document.getElementById("instagram-wjs")) {
+                    const script = document.createElement("script");
+                    script.id = "instagram-wjs";
+                    script.src = "https://www.instagram.com/embed.js";
+                    script.async = true;
+                    document.body.appendChild(script);
+                } else if ((window as any).instgrm && (window as any).instgrm.Embeds) {
                     try {
-                        // @ts-ignore
-                        window.instgrm.Embeds.process();
+                        (window as any).instgrm.Embeds.process();
                     } catch (e) {
                         console.error("Instagram embed error", e);
                     }

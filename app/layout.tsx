@@ -61,15 +61,7 @@ export default function RootLayout({
           </div>
         </ApolloWrapper>
         <Script
-          src="https://platform.twitter.com/widgets.js"
-          strategy="afterInteractive"
-        />
-        <Script
-          src="https://www.instagram.com/embed.js"
-          strategy="afterInteractive"
-        />
-        <Script
-          src="https://www.lared1061.com/wp-includes/js/wp-embed.min.js"
+          src="https://cms.lared1061.com/wp-includes/js/wp-embed.min.js"
           strategy="lazyOnload"
         />
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
