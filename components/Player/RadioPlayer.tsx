@@ -101,7 +101,7 @@ export default function RadioPlayer() {
                 NOTE: Using -left-[9999px] because some widgets won't initialize if display:none or w-0/h-0 
             */}
             {playerType && (
-                <div className={`fixed bottom-0 z-50 ${playerType === 'mini' ? 'left-[25px]' : 'left-0'}`}>
+                <div className={`fixed bottom-0 z-50 ${playerType === 'mini' ? 'left-[5px]' : 'left-0'}`}>
                     <td-player
                         id="td-player"
                         // @ts-ignore
