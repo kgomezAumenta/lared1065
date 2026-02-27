@@ -111,7 +111,7 @@ export default function RadioPlayer() {
                         secondarycolor="#E40000"
                         station="LA_RED"
                         onappready="appReady"
-                        defaultcoverart="https://www.lared1061.com/wp-content/uploads/2025/04/Diseno-sin-titulo-76.png"
+                        defaultcoverart="https://cms.lared1061.com/wp-content/uploads/2025/04/Diseno-sin-titulo-76.png"
                         class="w-full"
                     >
                     </td-player>
