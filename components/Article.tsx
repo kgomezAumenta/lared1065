@@ -98,6 +98,17 @@ const processContent = (content: string) => {
         }
     );
 
+    // Completely REMOVE WordPress internal embed IFrames and Blockquotes (The "Rich Cards" that show the CMS theme)
+    // We only want the raw <a> tags to remain, which Next.js will intercept and route internally.
+    processed = processed.replace(
+        /<blockquote class="wp-embedded-content"[^>]*>[\s\S]*?<\/blockquote>/gim,
+        ''
+    );
+    processed = processed.replace(
+        /<iframe class="wp-embedded-content"[^>]*>[\s\S]*?<\/iframe>/gim,
+        ''
+    );
+
     // Fix internal links mapping back to Next.js frontend router
     processed = processed.replace(
         /href="https?:\/\/(www\.)?(cms\.)?lared1061\.com\/([^"]*)"/gim,
