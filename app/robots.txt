@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Allow: /api/webhook/
+
+# Directorios de Next.js
+Disallow: /api/
+Disallow: /_next/
+Disallow: /public/
+
+# Rutas privadas o temporales
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /login/
+Disallow: /cuenta/
+Disallow: *?q=*
+Disallow: /search
+
+# Sitemaps
+Sitemap: https://lared1061.com/sitemap.xml
+Sitemap: https://lared1061.com/sitemap-news.xml
+Sitemap: https://lared1061.com/sitemap-video.xml

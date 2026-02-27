@@ -6,7 +6,8 @@ export interface Ad {
     content: string; // The raw HTML/JS of the ad
 }
 
-const API_URL = "https://www.lared1061.com/wp-json/advanced-ads/v1/ads";
+const wpUrl = process.env.NEXT_PUBLIC_WP_URL || "https://cms.lared1061.com";
+const API_URL = `${wpUrl}/wp-json/advanced-ads/v1/ads`;
 
 export async function getAdsById(id: number): Promise<Ad[]> {
     try {
@@ -17,7 +18,7 @@ export async function getAdsById(id: number): Promise<Ad[]> {
         let allGroups: any[] = [];
         const [adsRes, groupsRes] = await Promise.all([
             fetch(`${API_URL}?per_page=100`, { next: { revalidate: 300 } }),
-            fetch("https://www.lared1061.com/wp-json/advanced-ads/v1/groups?per_page=100", { next: { revalidate: 300 } })
+            fetch(`${wpUrl}/wp-json/advanced-ads/v1/groups?per_page=100`, { next: { revalidate: 300 } })
         ]);
 
         if (adsRes.ok) allAds = await adsRes.json();

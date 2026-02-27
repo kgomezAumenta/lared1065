@@ -1,0 +1,26 @@
+# La Red 106.1
+
+> Conectando con tu vida. La red deportiva y de noticias de Guatemala. Transmisión de radio en vivo, noticias de último minuto, podcasts, entrevistas y coberturas deportivas completas.
+
+## Características Principales
+
+- **Último Minuto**: Cobertura constante de noticias de último minuto y sucesos relevantes en el país y el mundo.
+- **Minuto a Minuto**: Sigue las transmisiones y el relato en directo, minuto a minuto, de los partidos de la Liga Nacional.
+- **Podcasts y Entrevistas**: Escucha nuestros podcasts y entrevistas exclusivas de interés general, política, economía y deportes.
+- **Transmisiones en Video**: Mira en vivo las transmisiones directamente desde nuestra cabina, así como la cobertura en directo de sucesos relevantes y eventos deportivos.
+
+## Secciones Principales
+
+- [Inicio](https://lared1061.com/): Página principal con las noticias más destacadas.
+- [Nacionales](https://lared1061.com/category/nacionales): Noticias actuales y relevantes de todo el territorio nacional guatemalteco.
+- [Internacionales](https://lared1061.com/category/internacionales): Noticias destacadas del resto del mundo.
+- [Economía](https://lared1061.com/category/economia): Novedades del mundo de las finanzas y la economía local e internacional.
+- [Programación](https://lared1061.com/programacion): La guía de horarios de todos los programas de nuestra emisora.
+- [En Vivo](https://lared1061.com/en-vivo): Escucha la transmisión de nuestra programación en vivo en todo momento.
+
+## Deportes
+
+- [Fútbol Nacional](https://lared1061.com/category/futbol-nacional): Cobertura del fútbol guatemalteco con información minuto a minuto de la Liga Nacional y resultados en tiempo real.
+- [Fútbol Internacional](https://lared1061.com/category/futbol-internacional): Mejores ligas del mundo y torneo internacionales.
+- [Deporte Nacional](https://lared1061.com/category/deporte-nacional): Lo último de otras disciplinas deportivas practicadas en Guatemala por atletas de alto rendimiento.
+- [Deporte Internacional](https://lared1061.com/category/deporte-internacional): Grandes ligas del béisbol, baloncesto, fútbol americano y otros deportes mundiales.
