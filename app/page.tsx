@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'; // Force dynamic rendering to fix caching issues
+// Allowed ISR to handle caching properly
 
 import Image from "next/image";
 import Link from "next/link";
@@ -121,7 +121,7 @@ async function getData() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
-      next: { revalidate: 0 }, // Disable cache for news
+      next: { revalidate: 60 }, // Cache homepage for 60 seconds
     });
 
     const json = await res.json();
