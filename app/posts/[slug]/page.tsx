@@ -254,15 +254,15 @@ export default async function PostPage({
 
                         <div className="flex flex-col border border-[#DCDCDC] rounded-[15px] overflow-hidden">
                             {otherPosts.map((sPost: any, idx: number) => (
-                                <Link key={sPost.id} href={`/posts/${sPost.slug}`} className="p-5 border-b border-[#DCDCDC] last:border-0 flex gap-6 items-center hover:bg-gray-50 transition-colors group">
-                                    <span className="text-[#9F9F9F] text-2xl font-bold">
+                                <Link key={sPost.id} href={`/posts/${sPost.slug}`} className="p-3 lg:p-4 border-b border-[#DCDCDC] last:border-0 flex gap-4 items-center hover:bg-gray-50 transition-colors group">
+                                    <span className="text-[#9F9F9F] text-xl font-bold shrink-0">
                                         {String(idx + 1).padStart(2, '0')}
                                     </span>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[#E40000] text-sm font-bold uppercase">
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-[#E40000] text-[10px] md:text-xs font-bold uppercase tracking-wider">
                                             {sPost.categories?.nodes[0]?.name || "NOTICIAS"}
                                         </span>
-                                        <h4 className="text-lg font-bold text-black leading-tight group-hover:text-[#E40000] transition-colors">{sPost.title}</h4>
+                                        <h4 className="text-sm md:text-base font-bold text-black leading-snug group-hover:text-[#E40000] transition-colors line-clamp-3">{sPost.title}</h4>
                                     </div>
                                 </Link>
                             ))}
