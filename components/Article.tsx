@@ -137,12 +137,17 @@ const processContent = (content: string) => {
             if (cleanPath === '' || cleanPath === '/') {
                 return `href="/"`;
             } else if (cleanPath.startsWith('category/')) {
+                // Keep category structure
                 return `href="/${cleanPath}"`;
             } else if (cleanPath === 'en-vivo' || cleanPath === 'contacto' || cleanPath === 'programacion' || cleanPath === 'minuto-a-minuto') {
                 return `href="/${cleanPath}"`;
             } else {
-                // Default to post slug
-                return `href="/posts/${cleanPath}"`;
+                // WordPress sometimes embeds links like /category-name/post-slug/post-slug or just /post-slug
+                // We just need the very last segment (the true slug) to map to /posts/[slug]
+                const segments = cleanPath.split('/').filter(Boolean);
+                const trueSlug = segments.pop() || cleanPath;
+
+                return `href="/posts/${trueSlug}"`;
             }
         }
     );
