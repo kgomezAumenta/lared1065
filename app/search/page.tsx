@@ -49,7 +49,8 @@ async function getSearchData(query: string) {
   `;
 
     try {
-        const res = await fetch("https://www.lared1061.com/graphql", {
+        const wpUrl = process.env.NEXT_PUBLIC_WP_URL || "https://cms.lared1061.com";
+        const res = await fetch(`${wpUrl}/graphql`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

@@ -72,7 +72,8 @@ async function getData(slug: string) {
   `;
 
     try {
-        const res = await fetch("https://www.lared1061.com/graphql", {
+        const wpUrl = process.env.NEXT_PUBLIC_WP_URL || "https://cms.lared1061.com";
+        const res = await fetch(`${wpUrl}/graphql`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query, variables: { slug } }),
@@ -113,7 +114,8 @@ async function getData(slug: string) {
             }
             `;
 
-            const relatedRes = await fetch("https://www.lared1061.com/graphql", {
+            const wpUrl = process.env.NEXT_PUBLIC_WP_URL || "https://cms.lared1061.com";
+            const relatedRes = await fetch(`${wpUrl}/graphql`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -156,7 +158,8 @@ async function getData(slug: string) {
              }
              `;
 
-            const catRes = await fetch("https://www.lared1061.com/graphql", {
+            const wpUrl = process.env.NEXT_PUBLIC_WP_URL || "https://cms.lared1061.com";
+            const catRes = await fetch(`${wpUrl}/graphql`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
