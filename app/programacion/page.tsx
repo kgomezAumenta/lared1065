@@ -22,11 +22,11 @@ const weeklySchedule: DaySchedule[] = [
 
         day: "Lunes a Viernes",
         programs: [
-            { time: "05:30 - 12:00", name: "LA PRIMERA DE LA RED", host: "Equipo La Red" },
-            { time: "12:00 - 14:00", name: "LA SEGUNDA DE LA RED", host: "Equipo La Red" },
-            { time: "14:00 - 17:00", name: "GENTE DE FUTBOL", host: "Equipo La Red" },
-            { time: "17:00 - 18:00", name: "LA TERCERA DE LA RED", host: "Equipo La Red" },
-            { time: "18:00 - 20:00", name: "LA RED AL CIERRE", host: "Equipo La Red" },
+            { time: "05:30 - 12:00", name: "LA PRIMERA DE LA RED", host: "Guillermo Velarde, Juan Francisco Romero, Fredy Cifuentes, Eduardo Escobar " },
+            { time: "12:00 - 14:00", name: "LA SEGUNDA DE LA RED", host: "Iris Pérez y Alexis Ponce" },
+            { time: "14:00 - 17:00", name: "GENTE DE FUTBOL", host: "Walter Avalos" },
+            { time: "17:00 - 18:00", name: "LA TERCERA DE LA RED", host: "Keyla Castillo y Mynor Barrios" },
+            { time: "18:00 - 20:00", name: "LA RED AL CIERRE", host: "Ivan Garcia y Mynor Barrios" },
             { time: "20:00 - 05:30", name: "LO MEJOR DE LA RED 106.1", host: "Equipo La Red" }
         ],
     },
