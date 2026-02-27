@@ -101,7 +101,7 @@ async function getData() {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       economia: posts(first: 6, where: { categoryName: "economia" }) {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
-      marcasPosts: posts(first: 6, where: { tag: "marcas" }) {
+      marcasPosts: posts(first: 3, where: { tag: "marcas" }) {
         nodes { id title slug date excerpt categories { nodes { name slug } } featuredImage { node { sourceUrl altText } } } }
       ahoraPosts: posts(first: 10) {
         nodes { id title slug date excerpt categories { nodes { name slug } } }
@@ -1040,7 +1040,7 @@ export default async function Home() {
           </div>
           <div className="h-[2px] bg-[#E40000] w-full mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {marcasPosts.slice(0, 6).map((post: Post) => (
+            {marcasPosts.slice(0, 3).map((post: Post) => (
               <div key={post.id} className="flex flex-col gap-3">
                 <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
                   {post.featuredImage?.node?.sourceUrl ? (
