@@ -98,6 +98,31 @@ const processContent = (content: string) => {
         }
     );
 
+    // Fix internal links mapping back to Next.js frontend router
+    processed = processed.replace(
+        /href="https?:\/\/(www\.)?(cms\.)?lared1061\.com\/([^"]*)"/gim,
+        (match, p1, p2, path) => {
+            // Keep wp-content and admin paths pointing to the CMS
+            if (path.startsWith('wp-content') || path.startsWith('wp-admin')) {
+                return `href="https://cms.lared1061.com/${path}"`;
+            }
+
+            const cleanPath = path.replace(/\/$/, ''); // Remove trailing slash
+
+            // Route standard Next.js pages properly
+            if (cleanPath === '' || cleanPath === '/') {
+                return `href="/"`;
+            } else if (cleanPath.startsWith('category/')) {
+                return `href="/${cleanPath}"`;
+            } else if (cleanPath === 'en-vivo' || cleanPath === 'contacto' || cleanPath === 'programacion' || cleanPath === 'minuto-a-minuto') {
+                return `href="/${cleanPath}"`;
+            } else {
+                // Default to post slug
+                return `href="/posts/${cleanPath}"`;
+            }
+        }
+    );
+
     return processed;
 };
 

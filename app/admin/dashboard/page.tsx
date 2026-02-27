@@ -125,28 +125,21 @@ export default function AdminDashboard() {
                 const isVideo = file.type.startsWith('video/');
                 mediaType = isVideo ? 'video' : 'image';
 
-                // 1. Get Pre-signed URL
-                const presignRes = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`);
-                const presignData = await presignRes.json();
+                const formData = new FormData();
+                formData.append("file", file);
 
-                if (!presignRes.ok) {
-                    throw new Error(presignData.error || "Error solicitando URL de subida");
-                }
-
-                // 2. Upload directly to S3
-                const uploadRes = await fetch(presignData.uploadUrl, {
-                    method: "PUT",
-                    body: file,
-                    headers: {
-                        "Content-Type": file.type
-                    }
+                const uploadRes = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
                 });
 
+                const uploadData = await uploadRes.json();
+
                 if (!uploadRes.ok) {
-                    throw new Error("Error al subir el archivo a S3");
+                    throw new Error(uploadData.error || "Error al subir el archivo al servidor proxy");
                 }
 
-                mediaUrl = presignData.publicUrl;
+                mediaUrl = uploadData.url;
                 setUploading(false);
             }
 
