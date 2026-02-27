@@ -32,7 +32,7 @@ export const SeoFragment = `
   }
 `;
 
-export function generateSeoMetadata(seoData: any, fallbackTitle?: string): Metadata {
+export function generateSeoMetadata(seoData: any, fallbackTitle?: string, explicitUrl?: string): Metadata {
   if (!seoData) {
     return {
       title: fallbackTitle || 'La Red 106.1',
@@ -43,7 +43,7 @@ export function generateSeoMetadata(seoData: any, fallbackTitle?: string): Metad
   const description = seoData.description || '';
 
   // Extract and force URL to the public frontend domain
-  let rawUrl = seoData.canonicalUrl || seoData.openGraph?.url || 'https://www.lared1061.com';
+  let rawUrl = explicitUrl || seoData.canonicalUrl || seoData.openGraph?.url || 'https://www.lared1061.com';
   const url = rawUrl.replace(/https?:\/\/(www\.)?cms\.lared1061\.com/gim, "https://www.lared1061.com");
 
   // Parse Robots

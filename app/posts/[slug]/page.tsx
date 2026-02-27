@@ -197,7 +197,8 @@ export async function generateMetadata({
         };
     }
 
-    return generateSeoMetadata(post.seo, `${post.title} - La Red 106.1`);
+    const explicitUrl = `https://www.lared1061.com/posts/${slug}`;
+    return generateSeoMetadata(post.seo, `${post.title} - La Red 106.1`, explicitUrl);
 }
 
 export default async function PostPage({
