@@ -218,6 +218,10 @@ export default function AdminMatches() {
         if (type === 'away') newScore.away = Math.max(0, newScore.away + delta);
 
         await updateDoc(doc(db, "matches", matchId), { score: newScore });
+
+        if (selectedMatch?.id === matchId) {
+            setSelectedMatch((prev) => prev ? { ...prev, score: newScore } : null);
+        }
     };
 
     const handleUpdateStatus = async (matchId: string, status: 'scheduled' | 'live' | 'finished') => {

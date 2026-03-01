@@ -12,6 +12,7 @@ interface NewsItem {
     timestamp: any;
     mediaUrl?: string;
     mediaType?: 'image' | 'video';
+    score?: string;
 }
 
 interface PostLiveUpdatesProps {
@@ -89,12 +90,19 @@ export default function PostLiveUpdates({ slug, onHasUpdates }: PostLiveUpdatesP
                             <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full border-4 border-white bg-red-500 shadow-sm z-10" />
 
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
-                                    <Clock size={12} />
-                                    {item.timestamp?.toDate
-                                        ? item.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                        : ''}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                                        <Clock size={12} />
+                                        {item.timestamp?.toDate
+                                            ? item.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                            : ''}
+                                    </span>
+                                    {item.score && (
+                                        <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                            Marcador: {item.score}
+                                        </span>
+                                    )}
+                                </div>
 
                                 <div className="text-base text-gray-800 font-medium leading-relaxed">
                                     {item.title}

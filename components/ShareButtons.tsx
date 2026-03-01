@@ -74,7 +74,7 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
                 ) : (
                     <>
                         <FaLink size={16} />
-                        <span className="text-sm font-medium">Copiar enlace</span>
+                        <span className="text-sm font-medium">Copiar</span>
                     </>
                 )}
             </button>

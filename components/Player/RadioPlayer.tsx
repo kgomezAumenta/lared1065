@@ -28,12 +28,13 @@ export default function RadioPlayer() {
 
             // Inyectar etiquetas de accesibilidad a los elementos inyectados por el SDK de Triton
             setTimeout(() => {
-                const playBtn = document.getElementById('td-player-bar__nowplaying__cover-art__media-controls--play');
+                const playBtn = document.getElementById('td-player-bar__nowplaying__cover-art__media-controls--play') || document.getElementById('td-player-mini__media-controls--play');
                 if (playBtn) playBtn.setAttribute('aria-label', 'Reproducir/Pausar Radio');
 
                 const coverImage = document.querySelector('.tdcoverart');
-                if (coverImage) coverImage.setAttribute('alt', 'Portada de la estación de radio');
+                if (coverImage) coverImage.setAttribute('alt', 'Portada de la red 106.1');
             }, 1500); // Give the widget time to render DOM nodes
+
 
             // Hook into player events to sync state
             // We use the object directly as it seemed to work best for the initial playback
@@ -101,7 +102,29 @@ export default function RadioPlayer() {
                 NOTE: Using -left-[9999px] because some widgets won't initialize if display:none or w-0/h-0 
             */}
             {playerType && (
-                <div className={`fixed bottom-0 z-50 ${playerType === 'mini' ? 'left-[1px]' : 'left-0'}`}>
+                <div className={`fixed bottom-0 z-50 ${playerType === 'mini' ? 'left-[1px] right-0 w-full' : 'left-0'}`}>
+                    {/* Fixed styles for mobile triton player */}
+                    <style dangerouslySetInnerHTML={{
+                        __html: `
+                        /* Position play button relative to its existing container */
+                        .td-player-mini__media-controls {
+                             position: relative !important;
+                             width: 100% !important;
+                             height: 100% !important;
+                        }
+                        #td-player-mini__media-controls--play, 
+                        #td-player-mini__media-controls--pause,
+                        #td-player-mini__media-controls--stop,
+                        .td-play-btn, .td-pause-btn, .td-stop-btn {
+                            position: absolute !important;
+                            top: 50% !important;
+                            left: 50% !important;
+                            transform: translate(-50%, -50%) !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            display: block !important;
+                        }
+                    `}} />
                     <td-player
                         id="td-player"
                         // @ts-ignore
@@ -112,7 +135,7 @@ export default function RadioPlayer() {
                         station="LA_RED"
                         onappready="appReady"
                         defaultcoverart="https://cms.lared1061.com/wp-content/uploads/2025/04/Diseno-sin-titulo-76.png"
-                        class="w-full"
+                        class="w-full block"
                     >
                     </td-player>
                 </div>
