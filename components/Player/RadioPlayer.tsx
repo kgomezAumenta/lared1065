@@ -11,7 +11,10 @@ export default function RadioPlayer() {
     const [player, setPlayer] = useState<any>(null);
     const [playerType, setPlayerType] = useState<"bar" | "mini" | null>(null);
 
+    const [isMounted, setIsMounted] = useState(false);
+
     useEffect(() => {
+        setIsMounted(true);
         // Evaluate screen size for player type
         const checkScreenSize = () => {
             setPlayerType(window.innerWidth < 768 ? "mini" : "bar");
@@ -85,6 +88,9 @@ export default function RadioPlayer() {
             }, 10000);
         }
     };
+
+    // Evitar errores de hidratación asegurando que solo renderizamos después de montar en el cliente
+    if (!isMounted) return null;
 
     return (
         <>
