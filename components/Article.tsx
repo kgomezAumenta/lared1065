@@ -4,6 +4,7 @@ import Link from "next/link";
 import AdvertisingBanner from "@/components/AdvertisingBanner";
 import PostScripts from "@/components/PostScripts";
 import PostLiveUpdates from "@/components/PostLiveUpdates";
+import ShareButtons from "@/components/ShareButtons";
 
 interface Post {
     id: string;
@@ -194,7 +195,9 @@ const Article = memo(({ post, relatedPosts, onLiveUpdatesFound }: {
 
             {/* Meta: Author & Date */}
             <div className="flex justify-between items-center w-full mb-6">
-                {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                <span className="text-[#888888] text-base font-normal">
+                    {new Date(post.date).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </span>
             </div>
 
             {/* Featured Image */}
@@ -211,20 +214,26 @@ const Article = memo(({ post, relatedPosts, onLiveUpdatesFound }: {
                 </div>
             )}
 
-            {/* Tags List */}
-            {post.tags?.nodes?.length ? (
-                <div className="flex flex-wrap gap-2 mb-8">
-                    {post.tags.nodes.map((tag: any) => (
-                        <Link
-                            key={tag.slug}
-                            href={`/search?q=${encodeURIComponent(tag.name)}`}
-                            className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold uppercase hover:bg-[#E40000] hover:text-white transition-colors"
-                        >
-                            {tag.name}
-                        </Link>
-                    ))}
+            {/* Tags List & Share Buttons */}
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+                {post.tags?.nodes?.length ? (
+                    <div className="flex flex-wrap gap-2">
+                        {post.tags.nodes.map((tag: any) => (
+                            <Link
+                                key={tag.slug}
+                                href={`/search?q=${encodeURIComponent(tag.name)}`}
+                                className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold uppercase hover:bg-[#E40000] hover:text-white transition-colors"
+                            >
+                                {tag.name}
+                            </Link>
+                        ))}
+                    </div>
+                ) : <div />}
+
+                <div className="flex-shrink-0">
+                    <ShareButtons url={`https://www.lared1061.com/posts/${post.slug}`} title={post.title} />
                 </div>
-            ) : null}
+            </div>
 
             {/* Post Live Updates (Minuto a Minuto) */}
             <PostLiveUpdates slug={post.slug} onHasUpdates={() => onLiveUpdatesFound?.(post.slug)} />
