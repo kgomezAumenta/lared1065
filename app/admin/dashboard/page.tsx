@@ -16,7 +16,9 @@ import {
     deleteDoc,
     doc,
     getDocs,
-    writeBatch
+    writeBatch,
+    setDoc,
+    getDoc
 } from "firebase/firestore";
 import { postTweet } from "@/app/actions/twitter";
 
@@ -37,7 +39,7 @@ export default function AdminDashboard() {
     const router = useRouter();
 
     // UI State
-    const [activeTab, setActiveTab] = useState<'global' | 'post'>('global');
+    const [activeTab, setActiveTab] = useState<'global' | 'post' | 'settings'>('global');
 
     // Form State
     const [title, setTitle] = useState("");
@@ -53,6 +55,10 @@ export default function AdminDashboard() {
     // List State
     const [globalItems, setGlobalItems] = useState<NewsItem[]>([]);
     const [postItems, setPostItems] = useState<NewsItem[]>([]);
+
+    // Settings State
+    const [showLiveButton, setShowLiveButton] = useState<boolean>(false);
+    const [savingSettings, setSavingSettings] = useState(false);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -82,10 +88,18 @@ export default function AdminDashboard() {
             setPostItems(items);
         });
 
+        // Settings snapshot
+        const unsubscribeSettings = onSnapshot(doc(db, "settings", "general"), (docSnap) => {
+            if (docSnap.exists()) {
+                setShowLiveButton(docSnap.data().showLiveButton || false);
+            }
+        });
+
         return () => {
             unsubscribeAuth();
             unsubscribeGlobal();
             unsubscribePost();
+            unsubscribeSettings();
         };
     }, [router]);
 
@@ -241,6 +255,21 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleSaveSettings = async () => {
+        setSavingSettings(true);
+        try {
+            await setDoc(doc(db, "settings", "general"), {
+                showLiveButton
+            }, { merge: true });
+            alert("Configuración guardada exitosamente.");
+        } catch (error: any) {
+            console.error("Error al guardar configuración:", error);
+            alert("Hubo un error al guardar la configuración.");
+        } finally {
+            setSavingSettings(false);
+        }
+    };
+
     if (loading) return <div className="p-10">Cargando...</div>;
 
     const currentItems = activeTab === 'global' ? globalItems : postItems;
@@ -280,161 +309,205 @@ export default function AdminDashboard() {
                     >
                         <FileText size={20} /> Por Post (Live Blog)
                     </button>
+                    <button
+                        onClick={() => setActiveTab('settings')}
+                        className={`pb-3 px-4 font-bold flex items-center gap-2 transition ${activeTab === 'settings' ? 'border-b-4 border-red-600 text-red-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Configuraciones
+                    </button>
                 </div>
 
                 {/* Add New Item Form */}
-                <div className="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-100">
-                    <h2 className="text-xl font-bold mb-4 text-gray-700">
-                        {activeTab === 'global' ? 'Agregar Noticia Global' : 'Agregar Actualización a Post'}
-                    </h2>
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                {activeTab !== 'settings' && (
+                    <div className="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-100">
+                        <h2 className="text-xl font-bold mb-4 text-gray-700">
+                            {activeTab === 'global' ? 'Agregar Noticia Global' : 'Agregar Actualización a Post'}
+                        </h2>
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-                        {/* Post Slug Field - Only for Post Tab */}
-                        {activeTab === 'post' && (
-                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                <label className="block text-sm font-bold text-blue-800 mb-1">URL o Slug del Post (Target)</label>
+                            {/* Post Slug Field - Only for Post Tab */}
+                            {activeTab === 'post' && (
+                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                    <label className="block text-sm font-bold text-blue-800 mb-1">URL o Slug del Post (Target)</label>
+                                    <input
+                                        type="text"
+                                        value={postSlug}
+                                        onChange={(e) => setPostSlug(e.target.value)}
+                                        className="w-full p-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                                        placeholder="Ej: https://lared.com.gt/posts/partido-rojos-cremas o solo 'partido-rojos-cremas'"
+                                        required
+                                    />
+                                    <p className="text-xs text-blue-600 mt-1">Pega la URL del artículo donde quieres que aparezca esta actualización.</p>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {activeTab === 'global' ? 'Título / Noticia' : 'Contenido de la Actualización'}
+                                </label>
                                 <input
                                     type="text"
-                                    value={postSlug}
-                                    onChange={(e) => setPostSlug(e.target.value)}
-                                    className="w-full p-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
-                                    placeholder="Ej: https://lared.com.gt/posts/partido-rojos-cremas o solo 'partido-rojos-cremas'"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                                    placeholder={activeTab === 'global' ? "Escribe la noticia de último momento..." : "Minuto 45: Goool de..."}
                                     required
                                 />
-                                <p className="text-xs text-blue-600 mt-1">Pega la URL del artículo donde quieres que aparezca esta actualización.</p>
                             </div>
-                        )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {activeTab === 'global' ? 'Título / Noticia' : 'Contenido de la Actualización'}
-                            </label>
-                            <input
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
-                                placeholder={activeTab === 'global' ? "Escribe la noticia de último momento..." : "Minuto 45: Goool de..."}
-                                required
-                            />
-                        </div>
+                            {/* Media Upload */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Imagen o Video (Opcional)</label>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer relative">
+                                    <input
+                                        type="file"
+                                        id="mediaUpload"
+                                        accept="image/*,video/*"
+                                        onChange={handleFileChange}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    />
+                                    {file ? (
+                                        <div className="flex items-center gap-2 text-green-600 font-medium">
+                                            {file.type.startsWith('image') ? <ImageIcon size={24} /> : <Film size={24} />}
+                                            <span>{file.name}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center text-gray-400">
+                                            <Upload size={32} className="mb-2" />
+                                            <span className="text-sm">Haz clic o arrastra para subir (Imagen o Video)</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                        {/* Media Upload */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Imagen o Video (Opcional)</label>
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer relative">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">URL Enlace (Opcional)</label>
                                 <input
-                                    type="file"
-                                    id="mediaUpload"
-                                    accept="image/*,video/*"
-                                    onChange={handleFileChange}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    type="url"
+                                    value={url}
+                                    onChange={(e) => setUrl(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                                    placeholder="https://..."
                                 />
-                                {file ? (
-                                    <div className="flex items-center gap-2 text-green-600 font-medium">
-                                        {file.type.startsWith('image') ? <ImageIcon size={24} /> : <Film size={24} />}
-                                        <span>{file.name}</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center text-gray-400">
-                                        <Upload size={32} className="mb-2" />
-                                        <span className="text-sm">Haz clic o arrastra para subir (Imagen o Video)</span>
-                                    </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="twitterAuth"
+                                    checked={postToTwitter}
+                                    onChange={(e) => setPostToTwitter(e.target.checked)}
+                                    className="w-5 h-5 text-red-600 rounded focus:ring-red-500 border-gray-300"
+                                />
+                                <label htmlFor="twitterAuth" className="text-gray-700 flex items-center gap-2 cursor-pointer">
+                                    <Twitter size={18} className="text-blue-400" /> Publicar en X (Twitter)
+                                </label>
+                                {activeTab === 'post' && (
+                                    <span className="text-xs text-gray-400">(Enlazará al Post)</span>
                                 )}
                             </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">URL Enlace (Opcional)</label>
-                            <input
-                                type="url"
-                                value={url}
-                                onChange={(e) => setUrl(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
-                                placeholder="https://..."
-                            />
-                        </div>
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className={`w-full py-3 rounded-lg font-bold text-white transition ${submitting ? 'bg-gray-400' : 'bg-[#E40000] hover:bg-red-700'}`}
+                            >
+                                {submitting ? (uploading ? 'Subiendo Archivo...' : 'Guardando...') : (activeTab === 'global' ? 'Publicar Noticia' : 'Publicar Actualización')}
+                            </button>
+                        </form>
+                    </div>
+                )}
 
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                id="twitterAuth"
-                                checked={postToTwitter}
-                                onChange={(e) => setPostToTwitter(e.target.checked)}
-                                className="w-5 h-5 text-red-600 rounded focus:ring-red-500 border-gray-300"
-                            />
-                            <label htmlFor="twitterAuth" className="text-gray-700 flex items-center gap-2 cursor-pointer">
-                                <Twitter size={18} className="text-blue-400" /> Publicar en X (Twitter)
-                            </label>
-                            {activeTab === 'post' && (
-                                <span className="text-xs text-gray-400">(Enlazará al Post)</span>
+                {/* List of Items */}
+                {activeTab !== 'settings' && (
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-gray-700">
+                                {activeTab === 'global' ? `Noticias Globales (${currentItems.length})` : `Actualizaciones por Post (${currentItems.length})`}
+                            </h2>
+                            {currentItems.length > 0 && (
+                                <button
+                                    onClick={() => handleFlush(activeTab === 'global')}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-sm font-bold transition"
+                                >
+                                    <Trash2 size={16} /> Eliminar Todas (Flush)
+                                </button>
                             )}
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className={`w-full py-3 rounded-lg font-bold text-white transition ${submitting ? 'bg-gray-400' : 'bg-[#E40000] hover:bg-red-700'}`}
-                        >
-                            {submitting ? (uploading ? 'Subiendo Archivo...' : 'Guardando...') : (activeTab === 'global' ? 'Publicar Noticia' : 'Publicar Actualización')}
-                        </button>
-                    </form>
-                </div>
-
-                {/* List of Items */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-gray-700">
-                            {activeTab === 'global' ? `Noticias Globales (${currentItems.length})` : `Actualizaciones por Post (${currentItems.length})`}
-                        </h2>
-                        {currentItems.length > 0 && (
-                            <button
-                                onClick={() => handleFlush(activeTab === 'global')}
-                                className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-sm font-bold transition"
-                            >
-                                <Trash2 size={16} /> Eliminar Todas (Flush)
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="flex flex-col gap-4">
-                        {currentItems.map((item) => (
-                            <div key={item.id} className="flex justify-between items-start p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition">
-                                <div>
-                                    <div className="text-xs text-gray-400 mb-1 flex gap-2 items-center">
-                                        <span>{item.timestamp?.toDate ? item.timestamp.toDate().toLocaleString() : 'Reciente'}</span>
-                                        {item.postSlug && (
-                                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold">
-                                                Post: {item.postSlug}
-                                            </span>
-                                        )}
-                                        {item.mediaUrl && (
-                                            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-1">
-                                                {item.mediaType === 'video' ? <Film size={10} /> : <ImageIcon size={10} />}
-                                                Media
-                                            </span>
-                                        )}
+                        <div className="flex flex-col gap-4">
+                            {currentItems.map((item) => (
+                                <div key={item.id} className="flex justify-between items-start p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition">
+                                    <div>
+                                        <div className="text-xs text-gray-400 mb-1 flex gap-2 items-center">
+                                            <span>{item.timestamp?.toDate ? item.timestamp.toDate().toLocaleString() : 'Reciente'}</span>
+                                            {item.postSlug && (
+                                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold">
+                                                    Post: {item.postSlug}
+                                                </span>
+                                            )}
+                                            {item.mediaUrl && (
+                                                <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-1">
+                                                    {item.mediaType === 'video' ? <Film size={10} /> : <ImageIcon size={10} />}
+                                                    Media
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h3 className="font-bold text-gray-800">{item.title}</h3>
+                                        {item.url && <a href={item.url} target="_blank" className="text-blue-600 text-sm hover:underline block mt-1">{item.url}</a>}
+                                        {item.postedToTwitter && <span className="inline-flex items-center gap-1 text-xs text-blue-400 mt-2 bg-blue-50 px-2 py-1 rounded"><Twitter size={12} /> Publicado en X</span>}
                                     </div>
-                                    <h3 className="font-bold text-gray-800">{item.title}</h3>
-                                    {item.url && <a href={item.url} target="_blank" className="text-blue-600 text-sm hover:underline block mt-1">{item.url}</a>}
-                                    {item.postedToTwitter && <span className="inline-flex items-center gap-1 text-xs text-blue-400 mt-2 bg-blue-50 px-2 py-1 rounded"><Twitter size={12} /> Publicado en X</span>}
+                                    <button
+                                        onClick={() => handleDelete(item.id, activeTab === 'global')}
+                                        className="text-gray-400 hover:text-red-500 p-2 transition"
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => handleDelete(item.id, activeTab === 'global')}
-                                    className="text-gray-400 hover:text-red-500 p-2 transition"
-                                    title="Eliminar"
-                                >
-                                    <Trash2 size={20} />
-                                </button>
-                            </div>
-                        ))}
-                        {currentItems.length === 0 && (
-                            <div className="text-center py-10 text-gray-400">
-                                No hay registros en esta sección.
-                            </div>
-                        )}
+                            ))}
+                            {currentItems.length === 0 && (
+                                <div className="text-center py-10 text-gray-400">
+                                    No hay registros en esta sección.
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* Settings Tab Content */}
+                {activeTab === 'settings' && (
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h2 className="text-xl font-bold text-gray-700 mb-6">Configuraciones Generales</h2>
+                        <div className="flex flex-col gap-6">
+
+                            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                <div>
+                                    <h3 className="font-bold text-gray-800">Botón "En Vivo" (Menú Principal)</h3>
+                                    <p className="text-sm text-gray-500">Activa o desactiva el botón rojo de transmisión en vivo en el cabezal de la web.</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={showLiveButton}
+                                        onChange={(e) => setShowLiveButton(e.target.checked)}
+                                    />
+                                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                                </label>
+                            </div>
+
+                            <button
+                                onClick={handleSaveSettings}
+                                disabled={savingSettings}
+                                className={`self-end px-6 py-2 rounded-lg font-bold text-white transition ${savingSettings ? 'bg-gray-400' : 'bg-[#E40000] hover:bg-red-700'}`}
+                            >
+                                {savingSettings ? "Guardando..." : "Guardar Cambios"}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );

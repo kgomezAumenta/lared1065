@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Menu, X, Facebook, Twitter, Instagram, Youtube, TrendingUp, ChevronDown } from "lucide-react";
+import { db } from "@/lib/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 import { getExchangeRate } from "@/app/actions/banguat";
 import WeatherWidget from "./WeatherWidget";
 
@@ -27,13 +29,13 @@ const NAV_LINKS: NavLink[] = [
     },
     { href: "/category/economia", label: "Economía" },
     { href: "/programacion", label: "Programación" },
-    { href: "/en-vivo", label: "En Vivo" },
 ];
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [exchangeRate, setExchangeRate] = useState<{ buy: number, sell: number } | null>(null);
+    const [showLiveButton, setShowLiveButton] = useState<boolean>(false);
 
     useEffect(() => {
         async function fetchRate() {
@@ -43,6 +45,14 @@ export default function Header() {
             }
         }
         fetchRate();
+
+        const unsubscribeSettings = onSnapshot(doc(db, "settings", "general"), (docSnap) => {
+            if (docSnap.exists()) {
+                setShowLiveButton(docSnap.data().showLiveButton || false);
+            }
+        });
+
+        return () => unsubscribeSettings();
     }, []);
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -154,16 +164,18 @@ export default function Header() {
             {/* Mobile Weather & Live Button (Below Main Header) */}
             <div className="md:hidden bg-gray-100 border-b border-gray-200 py-2 px-4 flex justify-between items-center">
                 <WeatherWidget variant="header-mobile" />
-                <Link
-                    href="/en-vivo"
-                    className="flex items-center gap-2 bg-[#E40000] text-white text-[11px] font-bold px-3 py-1.5 rounded-full hover:bg-red-700 transition-colors"
-                >
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                    </span>
-                    EN VIVO
-                </Link>
+                {showLiveButton && (
+                    <Link
+                        href="/en-vivo"
+                        className="flex items-center gap-2 bg-[#E40000] text-white text-[11px] font-bold px-3 py-1.5 rounded-full hover:bg-red-700 transition-colors"
+                    >
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                        </span>
+                        EN VIVO
+                    </Link>
+                )}
             </div>
 
             {/* Navigation Bar - RED BACKGROUND */}
@@ -173,22 +185,9 @@ export default function Header() {
                         {NAV_LINKS.map((link) => (
                             <li key={link.href || link.label} className="relative group">
                                 {link.href ? (
-                                    link.href === "/en-vivo" ? (
-                                        <Link
-                                            href={link.href}
-                                            className="flex items-center gap-2 bg-white text-[#E40000] font-extrabold px-4 py-1.5 rounded-full hover:bg-gray-100 transition-all"
-                                        >
-                                            <span className="relative flex h-2.5 w-2.5">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E40000] opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#E40000]"></span>
-                                            </span>
-                                            En Vivo
-                                        </Link>
-                                    ) : (
-                                        <Link href={link.href} className="hover:text-white hover:font-bold transition-all py-2">
-                                            {link.label}
-                                        </Link>
-                                    )
+                                    <Link href={link.href} className="hover:text-white hover:font-bold transition-all py-2">
+                                        {link.label}
+                                    </Link>
                                 ) : (
                                     <span className="cursor-pointer hover:text-white hover:font-bold transition-all flex items-center gap-1 py-2">
                                         {link.label}
@@ -213,6 +212,21 @@ export default function Header() {
                                 )}
                             </li>
                         ))}
+
+                        {showLiveButton && (
+                            <li className="relative group">
+                                <Link
+                                    href="/en-vivo"
+                                    className="flex items-center gap-2 bg-white text-[#E40000] font-extrabold px-4 py-1.5 rounded-full hover:bg-gray-100 transition-all"
+                                >
+                                    <span className="relative flex h-2.5 w-2.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E40000] opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#E40000]"></span>
+                                    </span>
+                                    En Vivo
+                                </Link>
+                            </li>
+                        )}
                     </ul>
                 </div>
             </nav>
@@ -291,6 +305,22 @@ export default function Header() {
                                         )}
                                     </li>
                                 ))}
+
+                                {showLiveButton && (
+                                    <li className="border-b border-gray-100 pb-2">
+                                        <Link
+                                            href="/en-vivo"
+                                            className="flex items-center gap-2 text-[#E40000] py-2 font-bold uppercase text-sm hover:text-red-700 transition-colors"
+                                            onClick={toggleMenu}
+                                        >
+                                            <span className="relative flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E40000] opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E40000]"></span>
+                                            </span>
+                                            En Vivo
+                                        </Link>
+                                    </li>
+                                )}
                             </ul>
                         </nav>
 
