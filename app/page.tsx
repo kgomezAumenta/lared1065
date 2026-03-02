@@ -132,22 +132,27 @@ async function getData() {
 
     const data = json.data;
     const now = new Date().getTime();
-    const twentyFourHours = 24 * 60 * 60 * 1000;
+    const twelveHours = 12 * 60 * 60 * 1000;
 
-    // Validate Sticky Hero (must be < 24h old)
+    // Validate Sticky Hero (must be < 12h old)
     let validStickyHero = null;
     if (data?.stickyPost?.nodes[0]) {
-      // Allow urgent post to persist longer if needed, or stick to 24h rule?
-      // Assuming urgent needs to be fresh too, keeping 24h logic from previous code or removing if user implies manual control.
-      // User said "until changed", implying manual control. Let's relax the 24h check or keep it broad.
-      // For safety, let's trust the tag mostly, but maybe a 48h window?
-      // Or just take it if it exists as per request "fix that note".
-      validStickyHero = data.stickyPost.nodes[0];
+      const postDate = new Date(data.stickyPost.nodes[0].date).getTime();
+      if (now - postDate <= twelveHours) {
+        validStickyHero = data.stickyPost.nodes[0];
+      }
     }
+
+    // Validate Urgent Related (must be < 12h old)
+    const urgentRelatedPostsRaw = data?.urgentRelated?.nodes || [];
+    const validUrgentRelated = urgentRelatedPostsRaw.filter((post: any) => {
+      const postDate = new Date(post.date).getTime();
+      return now - postDate <= twelveHours;
+    });
 
     return {
       stickyHero: validStickyHero,
-      urgentRelatedPosts: data?.urgentRelated?.nodes || [],
+      urgentRelatedPosts: validUrgentRelated,
       latestPosts: data?.latestPosts?.nodes || [],
       nacionalesPosts: data?.nacionales?.nodes || [],
       futbolNacionalPosts: data?.futbolNacional?.nodes || [],
@@ -429,7 +434,7 @@ export default async function Home() {
                   <div className="w-full h-full bg-gray-200" />
                 )}
                 {/* Floating Category Pill */}
-                <div className="absolute top-4 left-4">
+                <div className="absolute top-4 left-4 hidden md:block">
                   <span className="bg-[#E40000] text-white text-xs font-bold uppercase px-4 py-1.5 rounded-[10px]">
                     {featuredPost.categories?.nodes[0]?.name || "DESTACADO"}
                   </span>
@@ -524,7 +529,7 @@ export default async function Home() {
                         />
                       )}
                     </Link>
-                    <div className="self-start">
+                    <div className="self-start hidden md:block">
                       <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
                         NACIONALES
                       </span>
@@ -570,7 +575,7 @@ export default async function Home() {
                           />
                         )}
                       </Link>
-                      <div className="self-start">
+                      <div className="self-start hidden md:block">
                         <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
                           NACIONALES
                         </span>
@@ -629,7 +634,7 @@ export default async function Home() {
                         />
                       )}
                     </Link>
-                    <div className="self-start">
+                    <div className="self-start hidden md:block">
                       <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
                         FUTBOL NACIONAL
                       </span>
@@ -677,7 +682,7 @@ export default async function Home() {
                           />
                         )}
                       </Link>
-                      <div className="self-start">
+                      <div className="self-start hidden md:block">
                         <span className="bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] inline-block">
                           FUTBOL NACIONAL
                         </span>
@@ -804,7 +809,7 @@ export default async function Home() {
                     <div className="w-full h-full bg-gray-200" />
                   )}
                   {/* Floating Pill inside image */}
-                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] hidden md:block">
                     INTERNACIONALES
                   </div>
                 </Link>
@@ -855,7 +860,7 @@ export default async function Home() {
                     <div className="w-full h-full bg-gray-200" />
                   )}
                   {/* Floating Pill inside image */}
-                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] hidden md:block">
                     FUTBOL INTERNACIONAL
                   </div>
                 </Link>
@@ -890,7 +895,7 @@ export default async function Home() {
           </div>
           <div className="h-[2px] bg-[#E40000] w-full mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {deporteNacPosts.slice(0, 6).map((post: Post) => (
+            {deporteNacPosts.slice(0, 3).map((post: Post) => (
               <div key={post.id} className="flex flex-col gap-3">
                 <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
                   {post.featuredImage?.node?.sourceUrl ? (
@@ -905,7 +910,7 @@ export default async function Home() {
                   ) : (
                     <div className="w-full h-full bg-gray-200" />
                   )}
-                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] hidden md:block">
                     DEPORTE NACIONAL
                   </div>
                 </Link>
@@ -940,7 +945,7 @@ export default async function Home() {
           </div>
           <div className="h-[2px] bg-[#E40000] w-full mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {deporteIntPosts.slice(0, 6).map((post: Post) => (
+            {deporteIntPosts.slice(0, 3).map((post: Post) => (
               <div key={post.id} className="flex flex-col gap-3">
                 <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
                   {post.featuredImage?.node?.sourceUrl ? (
@@ -955,7 +960,7 @@ export default async function Home() {
                   ) : (
                     <div className="w-full h-full bg-gray-200" />
                   )}
-                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] hidden md:block">
                     DEPORTE INTERNACIONAL
                   </div>
                 </Link>
@@ -990,7 +995,7 @@ export default async function Home() {
           </div>
           <div className="h-[2px] bg-[#E40000] w-full mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {economiaPosts.slice(0, 6).map((post: Post) => (
+            {economiaPosts.slice(0, 3).map((post: Post) => (
               <div key={post.id} className="flex flex-col gap-3">
                 <Link href={`/posts/${post.slug}`} className="relative block h-[250px] w-full rounded-[20px] overflow-hidden">
                   {post.featuredImage?.node?.sourceUrl ? (
@@ -1005,7 +1010,7 @@ export default async function Home() {
                   ) : (
                     <div className="w-full h-full bg-gray-200" />
                   )}
-                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] hidden md:block">
                     ECONOMÍA
                   </div>
                 </Link>
@@ -1055,7 +1060,7 @@ export default async function Home() {
                   ) : (
                     <div className="w-full h-full bg-gray-200" />
                   )}
-                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px]">
+                  <div className="absolute bottom-4 left-4 bg-[#E40000] text-white text-[10px] font-bold uppercase px-3 py-1 rounded-[8px] hidden md:block">
                     MARCAS
                   </div>
                 </Link>

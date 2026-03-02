@@ -216,19 +216,25 @@ const Article = memo(({ post, relatedPosts, onLiveUpdatesFound }: {
 
             {/* Tags List & Share Buttons */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
-                {post.tags?.nodes?.length ? (
-                    <div className="flex flex-wrap gap-2">
-                        {post.tags.nodes.map((tag: any) => (
-                            <Link
-                                key={tag.slug}
-                                href={`/search?q=${encodeURIComponent(tag.name)}`}
-                                className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold uppercase hover:bg-[#E40000] hover:text-white transition-colors"
-                            >
-                                {tag.name}
-                            </Link>
-                        ))}
-                    </div>
-                ) : <div />}
+                {post.tags?.nodes?.length ? (() => {
+                    const visibleTags = post.tags.nodes.filter(
+                        (tag: any) => tag.slug !== 'urgente-portada' && tag.slug !== 'urgente-portada-relacionada'
+                    );
+                    if (visibleTags.length === 0) return <div />;
+                    return (
+                        <div className="flex flex-wrap gap-2">
+                            {visibleTags.map((tag: any) => (
+                                <Link
+                                    key={tag.slug}
+                                    href={`/search?q=${encodeURIComponent(tag.name)}`}
+                                    className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold uppercase hover:bg-[#E40000] hover:text-white transition-colors"
+                                >
+                                    {tag.name}
+                                </Link>
+                            ))}
+                        </div>
+                    );
+                })() : <div />}
 
                 <div className="flex-shrink-0">
                     <ShareButtons url={`https://www.lared1061.com/posts/${post.slug}`} title={post.title} />
