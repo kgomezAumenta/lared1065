@@ -65,7 +65,7 @@ async function getData() {
           featuredImage { node { sourceUrl altText } }
         }
       }
-      urgentRelated: posts(first: 5, where: { tag: "urgente-portada-relaciononada" }) {
+      urgentRelated: posts(first: 5, where: { tag: "urgente-portada-relacionada" }) {
         nodes {
           id
           title
