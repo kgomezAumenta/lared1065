@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "laredaumenta.s3.us-east-2.amazonaws.com",
       },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
+      },
     ],
     qualities: [50, 75, 80, 85, 90, 100],
   },
