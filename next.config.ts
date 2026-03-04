@@ -121,6 +121,11 @@ const nextConfig: NextConfig = {
         destination: '/posts/:slug',
         permanent: true,
       },
+      {
+        source: '/tag/:slug',
+        destination: '/',
+        permanent: true,
+      },
     ];
   },
 };
