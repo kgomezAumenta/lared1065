@@ -101,6 +101,26 @@ const nextConfig: NextConfig = {
         destination: '/posts/:slug',
         permanent: true,
       },
+      {
+        source: '/futbol-nacional/:slug',
+        destination: '/posts/:slug',
+        permanent: true,
+      },
+      {
+        source: '/futbol-internacional/:slug',
+        destination: '/posts/:slug',
+        permanent: true,
+      },
+      {
+        source: '/deporte-nacional/:slug',
+        destination: '/posts/:slug',
+        permanent: true,
+      },
+      {
+        source: '/deporte-internacional/:slug',
+        destination: '/posts/:slug',
+        permanent: true,
+      },
     ];
   },
 };
