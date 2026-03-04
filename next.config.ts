@@ -55,6 +55,52 @@ const nextConfig: NextConfig = {
         destination: '/category/economia',
         permanent: true,
       },
+      // Nuevas redirecciones solicitadas
+      {
+        source: '/nacionales',
+        destination: '/category/nacionales',
+        permanent: true,
+      },
+      {
+        source: '/internacionales',
+        destination: '/category/internacionales',
+        permanent: true,
+      },
+      {
+        source: '/nacionales/page/:page',
+        destination: '/category/nacionales',
+        permanent: true,
+      },
+      {
+        source: '/internacionales/page/:page',
+        destination: '/category/internacionales',
+        permanent: true,
+      },
+      {
+        source: '/economia/page/:page',
+        destination: '/category/economia',
+        permanent: true,
+      },
+      {
+        source: '/category/:slug/page/:page',
+        destination: '/category/:slug',
+        permanent: true,
+      },
+      {
+        source: '/nacionales/:slug',
+        destination: '/posts/:slug',
+        permanent: true,
+      },
+      {
+        source: '/internacionales/:slug',
+        destination: '/posts/:slug',
+        permanent: true,
+      },
+      {
+        source: '/economia/:slug',
+        destination: '/posts/:slug',
+        permanent: true,
+      },
     ];
   },
 };
