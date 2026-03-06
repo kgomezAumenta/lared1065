@@ -59,18 +59,20 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
     React.useEffect(() => {
         if (!containerRef.current || adContents.length === 0) return;
 
-        // Force a small delay to ensure the DOM layout has calculated the width
-        // AdSense throws "No slot size for availableWidth=0" if container is hidden/0 width
-        const timeoutId = setTimeout(() => {
-            if (!containerRef.current) return;
-            const scripts = containerRef.current.querySelectorAll('script');
+        const container = containerRef.current;
+        let observer: ResizeObserver | null = null;
+        let timeoutId: NodeJS.Timeout;
 
-            // Look for ad tags (ins) and ensure they are block level to force width
-            const insTags = containerRef.current.querySelectorAll('ins.adsbygoogle');
+        const executeScripts = () => {
+            const scripts = container.querySelectorAll('script');
+
+            // Ensure ad tags (ins) are block level to force width
+            const insTags = container.querySelectorAll('ins.adsbygoogle');
             insTags.forEach((ins) => {
                 (ins as HTMLElement).style.display = 'block';
-                // Only required if you want to explicitly set width: 100%
                 (ins as HTMLElement).style.width = '100%';
+                (ins as HTMLElement).style.minWidth = '250px';
+                (ins as HTMLElement).style.minHeight = '50px';
             });
 
             scripts.forEach((oldScript) => {
@@ -79,23 +81,47 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
 
                 const newScript = document.createElement('script');
 
-                // Copy all attributes (like async, src, etc) EXCEPT data-executed
                 Array.from(oldScript.attributes).forEach(attr => {
                     newScript.setAttribute(attr.name, attr.value);
                 });
 
                 newScript.textContent = oldScript.textContent;
 
-                // Track execution in memory instead of mutating the DOM node
+                // Track execution in memory
                 executedScriptsRef.current.add(scriptId);
 
                 if (oldScript.parentNode) {
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 }
             });
-        }, 100); // 100ms delay to let flexbox render the widths
+        };
 
-        return () => clearTimeout(timeoutId);
+        // AdSense throws "No slot size for availableWidth=0" if container is hidden/0 width.
+        // We use a ResizeObserver to wait until the container actually has a painted width > 0.
+        if (container.offsetWidth > 0) {
+            // Already visible, execute with a tiny layout delay
+            timeoutId = setTimeout(executeScripts, 50);
+        } else {
+            // Wait for flexbox to calculate dimensions
+            observer = new ResizeObserver((entries) => {
+                for (const entry of entries) {
+                    if (entry.contentRect.width > 0) {
+                        executeScripts();
+                        if (observer) {
+                            observer.disconnect();
+                            observer = null;
+                        }
+                        break;
+                    }
+                }
+            });
+            observer.observe(container);
+        }
+
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            if (observer) observer.disconnect();
+        };
     }, [currentIndex, adContents]);
 
     // Container styles
@@ -111,7 +137,7 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
             {adId && currentAdContent ? (
                 <div
                     ref={containerRef}
-                    className="w-full h-full flex justify-center items-center"
+                    className="w-full h-full block text-center min-w-[250px]"
                     dangerouslySetInnerHTML={{ __html: currentAdContent }}
                 />
             ) : (
