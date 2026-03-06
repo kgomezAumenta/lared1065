@@ -57,24 +57,40 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
     React.useEffect(() => {
         if (!containerRef.current || adContents.length === 0) return;
 
-        const scripts = containerRef.current.querySelectorAll('script');
-        scripts.forEach((oldScript) => {
-            if (oldScript.getAttribute('data-executed')) return;
+        // Force a small delay to ensure the DOM layout has calculated the width
+        // AdSense throws "No slot size for availableWidth=0" if container is hidden/0 width
+        const timeoutId = setTimeout(() => {
+            if (!containerRef.current) return;
+            const scripts = containerRef.current.querySelectorAll('script');
 
-            const newScript = document.createElement('script');
-
-            // Copy all attributes (like async, src, etc)
-            Array.from(oldScript.attributes).forEach(attr => {
-                newScript.setAttribute(attr.name, attr.value);
+            // Look for ad tags (ins) and ensure they are block level to force width
+            const insTags = containerRef.current.querySelectorAll('ins.adsbygoogle');
+            insTags.forEach((ins) => {
+                (ins as HTMLElement).style.display = 'block';
+                // Only required if you want to explicitly set width: 100%
+                (ins as HTMLElement).style.width = '100%';
             });
 
-            newScript.textContent = oldScript.textContent;
-            newScript.setAttribute('data-executed', 'true');
+            scripts.forEach((oldScript) => {
+                if (oldScript.getAttribute('data-executed')) return;
 
-            if (oldScript.parentNode) {
-                oldScript.parentNode.replaceChild(newScript, oldScript);
-            }
-        });
+                const newScript = document.createElement('script');
+
+                // Copy all attributes (like async, src, etc)
+                Array.from(oldScript.attributes).forEach(attr => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+
+                newScript.textContent = oldScript.textContent;
+                newScript.setAttribute('data-executed', 'true');
+
+                if (oldScript.parentNode) {
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                }
+            });
+        }, 100); // 100ms delay to let flexbox render the widths
+
+        return () => clearTimeout(timeoutId);
     }, [currentIndex, adContents]);
 
     // Container styles
