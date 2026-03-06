@@ -28,6 +28,8 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
 
     // Add a ref to the container
     const containerRef = React.useRef<HTMLDivElement>(null);
+    // Add a ref to track executed scripts by their content/src to prevent duplicates
+    const executedScriptsRef = React.useRef<Set<string>>(new Set());
 
     // Fetch Advanced Ads if adId is present
     React.useEffect(() => {
@@ -72,17 +74,20 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
             });
 
             scripts.forEach((oldScript) => {
-                if (oldScript.getAttribute('data-executed')) return;
+                const scriptId = oldScript.src || oldScript.innerHTML;
+                if (executedScriptsRef.current.has(scriptId)) return;
 
                 const newScript = document.createElement('script');
 
-                // Copy all attributes (like async, src, etc)
+                // Copy all attributes (like async, src, etc) EXCEPT data-executed
                 Array.from(oldScript.attributes).forEach(attr => {
                     newScript.setAttribute(attr.name, attr.value);
                 });
 
                 newScript.textContent = oldScript.textContent;
-                newScript.setAttribute('data-executed', 'true');
+
+                // Track execution in memory instead of mutating the DOM node
+                executedScriptsRef.current.add(scriptId);
 
                 if (oldScript.parentNode) {
                     oldScript.parentNode.replaceChild(newScript, oldScript);
