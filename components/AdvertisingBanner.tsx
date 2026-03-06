@@ -26,6 +26,9 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
     const [adContents, setAdContents] = React.useState<string[]>([]);
     const [currentIndex, setCurrentIndex] = React.useState(0);
 
+    // Add a ref to the container
+    const containerRef = React.useRef<HTMLDivElement>(null);
+
     // Fetch Advanced Ads if adId is present
     React.useEffect(() => {
         if (!adId) return;
@@ -33,10 +36,6 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
         async function loadAd() {
             const ads = await getAdsById(adId!);
             if (ads && ads.length > 0) {
-                // Determine if the content is just an image or script
-                // We will render it raw. Scripts might need execute logic if they are written via document.write (less likely in modern ads)
-                // But usually dangerousSetInnerHTML works for standard tags.
-                // For scripts that need execution, we might need a helper, but let's try direct first.
                 setAdContents(ads.map(ad => ad.content));
             }
         }
@@ -54,6 +53,30 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
         return () => clearInterval(intervalId);
     }, [adContents.length]);
 
+    // Execute scripts inside the ad content since dangerouslySetInnerHTML doesn't execute script tags
+    React.useEffect(() => {
+        if (!containerRef.current || adContents.length === 0) return;
+
+        const scripts = containerRef.current.querySelectorAll('script');
+        scripts.forEach((oldScript) => {
+            if (oldScript.getAttribute('data-executed')) return;
+
+            const newScript = document.createElement('script');
+
+            // Copy all attributes (like async, src, etc)
+            Array.from(oldScript.attributes).forEach(attr => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+
+            newScript.textContent = oldScript.textContent;
+            newScript.setAttribute('data-executed', 'true');
+
+            if (oldScript.parentNode) {
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            }
+        });
+    }, [currentIndex, adContents]);
+
     // Container styles
     const containerClass = className
         ? `${className} overflow-hidden bg-transparent flex justify-center items-center`
@@ -66,6 +89,7 @@ const AdvertisingBanner: React.FC<AdvertisingBannerProps> = ({
             {/* 1. Advanced Ads */}
             {adId && currentAdContent ? (
                 <div
+                    ref={containerRef}
                     className="w-full h-full flex justify-center items-center"
                     dangerouslySetInnerHTML={{ __html: currentAdContent }}
                 />

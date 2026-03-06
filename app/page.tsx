@@ -549,11 +549,11 @@ export default async function Home() {
                 ))}
 
                 {/* Ad Slot (3rd Column in Row 1) */}
-                <div className="flex-1 min-w-[280px]">
+                <div className="flex-1 min-w-[280px] flex items-center justify-center">
                   <AdvertisingBanner
                     adId={37292}
                     placeholderText="Anuncio Nacionales"
-                    className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
+                    className="w-full flex justify-center items-center h-full min-h-[250px]"
                   />
                 </div>
               </div>
@@ -656,11 +656,11 @@ export default async function Home() {
                 ))}
 
                 {/* Ad Slot (3rd Column in Row 1) */}
-                <div className="flex-1 min-w-[280px]">
+                <div className="flex-1 min-w-[280px] flex items-center justify-center">
                   <AdvertisingBanner
                     adId={37293}
                     placeholderText="Anuncio Futbol"
-                    className="h-full w-full rounded-[15px] px-4 py-4 flex flex-col justify-center items-start text-left min-h-[350px]"
+                    className="w-full flex justify-center items-center h-full min-h-[250px]"
                   />
                 </div>
               </div>
